@@ -1,0 +1,30 @@
+title: Senior Project
+description: Senior project site for Emily Young
+
+remote_theme: pages-themes/midnight@v0.2.0
+baseurl: /senior-project-2026-2027-Emily-Young
+
+plugins:
+  - jekyll-relative-links
+  - jekyll-remote-theme
+  - jekyll-seo-tag
+whitelist:
+  - jekyll-relative-links
+  - jekyll-remote-theme
+  - jekyll-seo-tag
+
+lsi: false
+safe: true
+incremental: false
+highlighter: rouge
+gist:
+  noscript: false
+kramdown:
+  math_engine: mathjax
+  syntax_highlighter: rouge
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
