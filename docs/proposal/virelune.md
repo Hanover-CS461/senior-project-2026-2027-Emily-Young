@@ -1,11 +1,14 @@
 ---
+
 layout: default
+
 title: Virelune
+
 ---
 
 # Virelune
 
-> A two-player cooperative dungeon-crawling game controlled by custom physical controllers.
+A two-player cooperative dungeon-crawling game controlled by custom physical controllers.
 
 ## Project Overview
 
@@ -18,65 +21,88 @@ The game will be developed in **Godot** and designed for local two-player cooper
 ## Main Features
 
 * **Two-player local cooperative gameplay**
+
 * **Custom physical controllers** for each player
+
 * **Joystick and button-based controls**
+
 * **Arduino-compatible microcontrollers** for controller input
+
 * **Serial communication** between the controllers and computer
+
 * **Character-specific abilities and controls**
+
 * **Dungeon exploration**
+
 * **Enemy combat**
+
 * **Simple environmental puzzles and interactions**
+
 * **Final boss encounter**
+
 * **Health and player status**
+
 * **Basic user interface**
+
 * **Custom game visuals and sound**
 
 ## Comparable Solutions
 
 ### Minecraft Dungeons
 
-Minecraft Dungeons [1] is a cooperative dungeon-crawling game that provides the primary gameplay inspiration for Virelune. It features dungeon exploration, real-time combat, enemies, and boss encounters.
+Minecraft Dungeons [1](#ref-1) is a cooperative dungeon-crawling game that provides the primary gameplay inspiration for Virelune. It features dungeon exploration, real-time combat, enemies, and boss encounters.
 
 Virelune will use a much smaller scope, focusing on one polished dungeon and emphasizing custom physical controllers rather than inventory systems, extensive character progression, or multiple worlds.
 
+| Solution | Relevant Features | Difference from Virelune |
+|---|---|---|
+| Minecraft Dungeons | Dungeon exploration, combat, enemies, boss encounters | Virelune has a smaller scope and centers on custom physical controllers |
+| Nintendo Labo | Physical interfaces integrated into gameplay | Virelune uses purpose-built controllers tied to its own mechanics |
+| Makey Makey | Converts physical objects into computer input | Virelune creates dedicated controllers for specific characters and actions |
+
+
 ### Nintendo Labo
 
-Nintendo Labo [6] demonstrates how physical interfaces can become part of a game's interaction model. Its use of custom-built physical accessories is relevant to Virelune because the physical controller is intended to be an important part of the gameplay experience rather than simply replacing a keyboard.
+Nintendo Labo [6](#ref-6) demonstrates how physical interfaces can become part of a game's interaction model. Its use of custom-built physical accessories is relevant to Virelune because the physical controller is intended to be an important part of the gameplay experience rather than simply replacing a keyboard.
 
 ### Makey Makey
 
-Makey Makey [7] demonstrates how physical objects can be converted into computer input. Virelune builds on this general concept by creating purpose-built controllers specifically designed for the game's characters and mechanics.
+Makey Makey [7](#ref-7) demonstrates how physical objects can be converted into computer input. Virelune builds on this general concept by creating purpose-built controllers specifically designed for the game's characters and mechanics.
 
 ## Technologies
 
 ### Godot
 
-Virelune will be developed using **Godot** [2], an open-source game engine supporting both 2D and 3D development. Godot provides the tools needed for scenes, physics, input handling [3], animation, audio, UI, and game logic.
+Virelune will be developed using **Godot** [2](#ref-2), an open-source game engine supporting both 2D and 3D development. Godot provides the tools needed for scenes, physics, input handling [3](#ref-3), animation, audio, UI, and game logic.
 
 Godot was selected instead of Unity because it is lightweight, open-source, and well suited to the relatively small scope of this project.
 
 ### GDScript
 
-The game's gameplay logic will primarily be written in **GDScript** [10], Godot's scripting language. Its syntax is similar to Python, which makes it a reasonable choice given my existing programming experience.
+The game's gameplay logic will primarily be written in **GDScript** [10](#ref-10), Godot's scripting language. Its syntax is similar to Python, which makes it a reasonable choice given my existing programming experience.
 
 GDScript will be used for player movement, combat, abilities, enemy behavior, interactions, game state, and controller input.
 
 ### Arduino
 
-Each custom controller will use an **Arduino-compatible microcontroller** [4] to read physical inputs such as joysticks and buttons.
+Each custom controller will use an **Arduino-compatible microcontroller** [4](#ref-4) to read physical inputs such as joysticks and buttons.
 
 The controller hardware is based on concepts I have already worked with, so Arduino itself is not expected to be a major new learning area for this project.
 
 ### Serial Communication
 
-The controllers will communicate with the computer using **serial communication** [5].
+The controllers will communicate with the computer using **serial communication** [5](#ref-5).
 
 A structured protocol will allow the game to receive information such as:
 
 * Controller identification
+
 * Joystick position
+
 * Button states
+
 * Special inputs
+
 * Calibration information
 
 The game will then translate these inputs into player actions.
@@ -91,53 +117,94 @@ Because the players will share the same game instance, online networking is not 
 
 Virelune will rely on existing libraries wherever practical so that common functionality does not need to be hand-rolled.
 
-Godot ships with built-in modules for physics, animation, audio, UI, and scene management [2], [3], so these systems are used directly rather than reimplemented.
+Godot ships with built-in modules for physics, animation, audio, UI, and scene management [2](#ref-2), [3](#ref-3), so these systems are used directly rather than reimplemented.
 
 For reading serial data inside Godot, a community serial-port addon (such as the GDSeriport addon or a similar maintained plugin) is the primary option. If no addon proves reliable with the chosen board, the fallback is to implement the serial reading layer directly in GDScript.
 
-On the Arduino side, the built-in `Serial` library handles USB-to-serial communication between the board and the computer [5], and Arduino input libraries provide joystick reading and button debouncing so the controller firmware does not have to reimplement these basics.
+On the Arduino side, the built-in \`Serial\` library handles USB-to-serial communication between the board and the computer [5](#ref-5), and Arduino input libraries provide joystick reading and button debouncing so the controller firmware does not have to reimplement these basics.
 
 ## System Overview
 
 The major components of Virelune will work together as follows:
 
 ```text
+
 ┌──────────────────────┐
-│   Player 1 Controller│
-│   Joystick + Buttons │
+
+│   Player 1 Controller│
+
+│   Joystick + Buttons │
+
 └──────────┬───────────┘
-           │
-           │ Serial
-           ▼
+
+           │
+
+           │ Serial
+
+           ▼
+
 ┌──────────────────────┐
-│                      │
-│      Computer        │
-│                      │
-│       Godot          │
-│                      │
-│  ┌────────────────┐  │
-│  │ Virelune Game  │  │
-│  │                │  │
-│  │ Player 1       │  │
-│  │ Player 2       │  │
-│  │ Enemies        │  │
-│  │ Dungeon        │  │
-│  │ Boss           │  │
-│  └────────────────┘  │
-│                      │
+
+│                      │
+
+│      Computer        │
+
+│                      │
+
+│       Godot          │
+
+│                      │
+
+│  ┌────────────────┐  │
+
+│  │ Virelune Game  │  │
+
+│  │                │  │
+
+│  │ Player 1       │  │
+
+│  │ Player 2       │  │
+
+│  │ Enemies        │  │
+
+│  │ Dungeon        │  │
+
+│  │ Boss           │  │
+
+│  └────────────────┘  │
+
+│                      │
+
 └──────────┬───────────┘
-           │
-           │ Serial
-           ▼
+
+           │
+
+           │ Serial
+
+           ▼
+
 ┌──────────────────────┐
-│   Player 2 Controller│
-│   Joystick + Buttons │
+
+│   Player 2 Controller│
+
+│   Joystick + Buttons │
+
 └──────────────────────┘
+
 ```
 
 The controllers provide physical input, the computer receives and interprets that input, and Godot converts it into actions within Virelune.
 
 ## Technology Alternatives
+
+| Technology | Strengths | Decision for Virelune |
+|---|---|---|
+| Godot | Open-source, lightweight, supports 2D/3D development | **Selected** |
+| Unity | Widely used, extensive documentation and resources | Considered, but not selected |
+| GDScript | Python-like syntax and direct Godot integration | **Selected** |
+| C# | Widely used in software and game development | Considered, but GDScript is more familiar |
+| Custom Serial Protocol | Flexible hardware-to-game communication | **Selected** |
+| Standard Gamepad / Arcade Stick | Simpler to integrate | Not selected because custom hardware is central to the project |
 
 ### Godot vs. Unity
 
@@ -153,7 +220,7 @@ GDScript was selected because its Python-like syntax is familiar and because it 
 
 ### Custom Serial Protocol vs. Standard Gamepad
 
-A standard USB gamepad or a commercial arcade stick [8], [9] would be simpler to integrate, but it would not demonstrate the hardware-software integration that is central to this project.
+A standard USB gamepad or a commercial arcade stick [8](#ref-8), [9](#ref-9) would be simpler to integrate, but it would not demonstrate the hardware-software integration that is central to this project.
 
 A custom serial protocol allows the controllers to communicate their own inputs and gives the project more control over how physical actions are interpreted by the game.
 
@@ -181,11 +248,15 @@ Creating a cooperative game requires designing mechanics that encourage players 
 
 The Arduino hardware itself is familiar, but connecting the physical controller to a complete game introduces new challenges involving serial communication, input processing, calibration, timing, and translating physical actions into gameplay.
 
-## Development Scope
+### Development Scope
 
 The project will prioritize a **small, polished prototype** over a large amount of content.
 
-## Project Challenges
+![Gameplay Prototype](../assets/images/virelune-prototype.png)
+
+*Early Virelune gameplay prototype showing the two-player split-screen system and initial dungeon environment.*
+
+### Project Challenges
 
 The primary technical challenge will be integrating the custom controllers with the Godot game while maintaining responsive and reliable input.
 
@@ -195,22 +266,23 @@ The limited development timeline also requires careful scope management. The pro
 
 ## References
 
-[1] Mojang Studios, "Minecraft Dungeons." Accessed: Sep. 2, 2026. [Online]. Available: https://www.minecraft.net/en-us/about-dungeons
-
-[2] Godot Engine, "Godot Engine." Accessed: Sep. 2, 2026. [Online]. Available: https://godotengine.org/
-
-[3] Godot Engine, "InputEvent and Input Documentation." Accessed: Sep. 2, 2026. [Online]. Available: https://docs.godotengine.org/en/stable/tutorials/inputs/
-
-[4] Arduino, "Arduino Documentation." Accessed: Sep. 2, 2026. [Online]. Available: https://docs.arduino.cc/
-
-[5] Arduino, "Serial Communication." Accessed: Sep. 2, 2026. [Online]. Available: https://docs.arduino.cc/language-reference/en/functions/communication/serial/
-
-[6] Nintendo, "Nintendo Labo." Accessed: Sep. 2, 2026. [Online]. Available: https://www.nintendo.com/us/gaming-systems/switch/nintendo-labo/
-
-[7] Makey Makey, "Makey Makey." Accessed: Sep. 2, 2026. [Online]. Available: https://makeymakey.com/
-
-[8] HORI, "Arcade Controllers." Accessed: Sep. 2, 2026. [Online]. Available: https://stores.horiusa.com/
-
-[9] 8BitDo, "Arcade Stick." Accessed: Sep. 2, 2026. [Online]. Available: https://www.8bitdo.com/
-
-[10] Godot Engine, "GDScript Documentation." Accessed: Sep. 2, 2026. [Online]. Available: https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/
+<a id="ref-1"></a>
+1. Mojang Studios, "Minecraft Dungeons." Accessed: Sep. 2, 2026. [Online]. Available: [https://www.minecraft.net/en-us/about-dungeons](https://www.minecraft.net/en-us/about-dungeons)
+<a id="ref-2"></a>
+2. Godot Engine, "Godot Engine." Accessed: Sep. 2, 2026. [Online]. Available: [https://godotengine.org/](https://godotengine.org/)
+<a id="ref-3"></a>
+3. Godot Engine, "InputEvent and Input Documentation." Accessed: Sep. 2, 2026. [Online]. Available: [https://docs.godotengine.org/en/stable/tutorials/inputs/](https://docs.godotengine.org/en/stable/tutorials/inputs/)
+<a id="ref-4"></a>
+4. Arduino, "Arduino Documentation." Accessed: Sep. 2, 2026. [Online]. Available: [https://docs.arduino.cc/](https://docs.arduino.cc/)
+<a id="ref-5"></a>
+5. Arduino, "Serial Communication." Accessed: Sep. 2, 2026. [Online]. Available: [https://docs.arduino.cc/language-reference/en/functions/communication/serial/](https://docs.arduino.cc/language-reference/en/functions/communication/serial/)
+<a id="ref-6"></a>
+6. Nintendo, "Nintendo Labo." Accessed: Sep. 2, 2026. [Online]. Available: [https://www.nintendo.com/us/gaming-systems/switch/nintendo-labo/](https://www.nintendo.com/us/gaming-systems/switch/nintendo-labo/)
+<a id="ref-7"></a>
+7. Makey Makey, "Makey Makey." Accessed: Sep. 2, 2026. [Online]. Available: [https://makeymakey.com/](https://makeymakey.com/)
+<a id="ref-8"></a>
+8. HORI, "Arcade Controllers." Accessed: Sep. 2, 2026. [Online]. Available: [https://stores.horiusa.com/](https://stores.horiusa.com/)
+<a id="ref-9"></a>
+9. 8BitDo, "Arcade Stick." Accessed: Sep. 2, 2026. [Online]. Available: [https://www.8bitdo.com/](https://www.8bitdo.com/)
+<a id="ref-10"></a>
+10. Godot Engine, "GDScript Documentation." Accessed: Sep. 2, 2026. [Online]. Available: [https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/)
