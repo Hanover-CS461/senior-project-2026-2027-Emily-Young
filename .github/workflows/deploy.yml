@@ -26,6 +26,15 @@ jobs:
       - name: Build Jekyll site
         working-directory: ./docs
         run: bundle exec jekyll build
+      - name: Build slides with Marp CLI
+        working-directory: ./docs
+        run: npx --yes @marp-team/marp-cli@latest slides/presentation.md -o _site/slides/presentation.html
+      - name: Copy slide assets
+        working-directory: ./docs
+        run: |
+          if [ -d slides/assets ]; then
+            cp -r slides/assets _site/slides/assets
+          fi
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

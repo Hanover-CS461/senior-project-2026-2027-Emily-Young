@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://ulrdvgivr3a5"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ryguw"]
+transparency = 1
+albedo_color = Color(0, 0.99607843, 0, 0.47058824)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7anak"]
+albedo_color = Color(0, 0.99607843, 0, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_d87lq"]
+top_radius = 0.03
+bottom_radius = 0.03
+height = 1.0
+
+[node name="MageTarget" type="Node3D" unique_id=1589360695]
+
+[node name="Circle" type="CSGCylinder3D" parent="." unique_id=116251929]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+radius = 0.6
+height = 0.03
+material = SubResource("StandardMaterial3D_ryguw")
+
+[node name="AimLine" type="MeshInstance3D" parent="." unique_id=1480940638]
+material_override = SubResource("StandardMaterial3D_7anak")
+mesh = SubResource("CylinderMesh_d87lq")
