@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://bf857op33rnd"]
+
+[ext_resource type="PackedScene" uid="uid://bnx03j1xb7wnq" path="res://playable_character/barbarian/Barbarian.glb" id="1_ofhl6"]
+[ext_resource type="AnimationLibrary" uid="uid://chostbxdhkseh" path="res://animation/Rig_Medium_CombatMelee.glb" id="2_ip86l"]
+[ext_resource type="AnimationLibrary" uid="uid://4663ayf05aa" path="res://animation/Rig_Medium_CombatRanged.glb" id="3_htfbh"]
+[ext_resource type="AnimationLibrary" uid="uid://sca16nnncgl1" path="res://animation/Rig_Medium_General.glb" id="4_t54tr"]
+[ext_resource type="AnimationLibrary" uid="uid://dn5ubdwuw71q3" path="res://animation/Rig_Medium_MovementAdvanced.glb" id="5_fnlch"]
+[ext_resource type="AnimationLibrary" uid="uid://cyit50f4f24lv" path="res://animation/Rig_Medium_MovementBasic.glb" id="6_b150m"]
+[ext_resource type="AnimationLibrary" uid="uid://b7fjg6davp4q3" path="res://animation/Rig_Medium_Simulation.glb" id="7_sj2d7"]
+[ext_resource type="AnimationLibrary" uid="uid://dkof4rhf6ejii" path="res://animation/Rig_Medium_Special.glb" id="8_x5482"]
+[ext_resource type="AnimationLibrary" uid="uid://c5fwv2fr32f5" path="res://animation/Rig_Medium_Tools.glb" id="9_e6g4r"]
+
+[node name="Barbarian" unique_id=1710661864 instance=ExtResource("1_ofhl6")]
+
+[node name="Skeleton3D" parent="Rig_Medium" parent_id_path=PackedInt32Array(1656142205) index="0" unique_id=1136778402]
+bones/1/position = Vector3(9.462559e-08, 0.48128262, -0.39688855)
+bones/1/rotation = Quaternion(-0.05233592, 0.0012066803, -6.324933e-05, 0.9986288)
+bones/2/rotation = Quaternion(1.8626451e-09, -5.86553e-11, -1.323489e-23, 1)
+bones/3/rotation = Quaternion(0.052335817, -1.9376054e-10, 0.00012649129, 0.99862957)
+bones/4/position = Vector3(0.21200736, 0.13413227, 1.1463177e-07)
+bones/4/rotation = Quaternion(-0.3280619, -0.17763971, -0.798862, 0.4718464)
+bones/5/rotation = Quaternion(-3.642961e-09, -4.2924803e-08, -0.49286696, 0.87010473)
+bones/7/rotation = Quaternion(-0.14218646, -0.426849, -0.17046466, 0.87665546)
+bones/8/position = Vector3(-1.4387312e-08, 0.096125126, -0.057499975)
+bones/8/rotation = Quaternion(0.12751266, -0.0059294035, -0.5020117, 0.85538864)
+bones/9/rotation = Quaternion(4.7019774e-38, 1.9252013e-17, 1.110223e-16, 1)
+bones/10/position = Vector3(-0.21200737, 0.13413239, 5.4271297e-08)
+bones/10/rotation = Quaternion(-0.47954884, 0.13168815, 0.7511595, 0.43410912)
+bones/11/rotation = Quaternion(-9.529651e-09, 5.763673e-08, 0.59526765, 0.8035276)
+bones/13/rotation = Quaternion(-0.042427633, -0.03865473, 0.12362374, 0.990668)
+bones/14/position = Vector3(-3.5904108e-08, 0.096125126, -0.057500005)
+bones/14/rotation = Quaternion(0.09633249, 0.1939586, 0.52306706, 0.8243185)
+bones/15/position = Vector3(0.14728989, 0.08435925, 0.022773515)
+bones/15/rotation = Quaternion(0.75809896, 0.0147021515, -0.1311272, 0.6386514)
+bones/16/rotation = Quaternion(0.5896323, 5.3284207e-08, -4.0652054e-07, 0.80767184)
+bones/17/rotation = Quaternion(-0.62060446, 0.09371697, -0.016651304, 0.77832514)
+bones/18/rotation = Quaternion(-3.493554e-05, 0.9201413, -0.39158672, 7.916632e-06)
+bones/19/position = Vector3(-0.14905043, 0.08431748, 0.02328072)
+bones/19/rotation = Quaternion(0.7634224, -0.0379927, 0.07594449, 0.6402931)
+bones/20/rotation = Quaternion(0.5924863, -6.5456746e-08, 4.1728558e-07, 0.8055805)
+bones/21/rotation = Quaternion(-0.6253611, -0.02726838, 0.0106323995, 0.77978647)
+bones/22/rotation = Quaternion(-5.047784e-06, 0.9201402, -0.3915891, 1.1938879e-06)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." index="1" unique_id=493458927]
+libraries/Rig_Medium_CombatMelee = ExtResource("2_ip86l")
+libraries/Rig_Medium_CombatRanged = ExtResource("3_htfbh")
+libraries/Rig_Medium_General = ExtResource("4_t54tr")
+libraries/Rig_Medium_MovementAdvanced = ExtResource("5_fnlch")
+libraries/Rig_Medium_MovementBasic = ExtResource("6_b150m")
+libraries/Rig_Medium_Simulation = ExtResource("7_sj2d7")
+libraries/Rig_Medium_Special = ExtResource("8_x5482")
+libraries/Rig_Medium_Tools = ExtResource("9_e6g4r")
+autoplay = &"Rig_Medium_Simulation/Sit_Chair_Idle"

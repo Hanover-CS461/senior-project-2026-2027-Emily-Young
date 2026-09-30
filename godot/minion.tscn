@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://be12ke3fl8u5q"]
+
+[ext_resource type="Script" uid="uid://bov506inm6oe" path="res://enemies/skeleton_minion.gd" id="1_20mgi"]
+[ext_resource type="PackedScene" uid="uid://sqf8fxm1m1mf" path="res://enemies/skeleton_minion.tscn" id="2_777tc"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_2cqfq"]
+radius = 0.18701172
+height = 0.74383545
+
+[node name="minion" type="CharacterBody3D" unique_id=289258388 groups=["enemies"]]
+script = ExtResource("1_20mgi")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1561422698]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.011030644, 0.42710638, 0.0021342337)
+shape = SubResource("CapsuleShape3D_2cqfq")
+
+[node name="Skeleton_Minion" parent="." unique_id=1500754834 instance=ExtResource("2_777tc")]
+transform = Transform3D(-0.35999995, 0, -3.1472197e-08, 0, 0.35999995, 0, 3.1472197e-08, 0, -0.35999995, 0, 0, 0)

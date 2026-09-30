@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://bpxvsjdlsbu2"]
 
 [ext_resource type="PackedScene" uid="uid://dm3whkffawey4" path="res://playable_character/Mage/Mage.glb" id="1_qmsnj"]
-[ext_resource type="Script" uid="uid://da5akeeqrnbag" path="res://playable_character/Mage/mage.gd" id="2_04k1n"]
-[ext_resource type="AnimationLibrary" uid="uid://sca16nnncgl1" path="res://playable_character/Rig_Medium_General.glb" id="2_vjvhk"]
-[ext_resource type="AnimationLibrary" uid="uid://cyit50f4f24lv" path="res://playable_character/Rig_Medium_MovementBasic.glb" id="3_04k1n"]
+[ext_resource type="Script" uid="uid://by42utblh1hab" path="res://playable_character/Mage/mage.gd" id="2_04k1n"]
+[ext_resource type="AnimationLibrary" uid="uid://sca16nnncgl1" path="res://animation/Rig_Medium_General.glb" id="2_vjvhk"]
+[ext_resource type="AnimationLibrary" uid="uid://cyit50f4f24lv" path="res://animation/Rig_Medium_MovementBasic.glb" id="3_04k1n"]
 
 [node name="Mage" unique_id=1450532828 instance=ExtResource("1_qmsnj")]
 script = ExtResource("2_04k1n")

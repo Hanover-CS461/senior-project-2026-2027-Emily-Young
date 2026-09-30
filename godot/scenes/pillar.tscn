@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bhouom2ckcbtm"]
 
-[ext_resource type="PackedScene" uid="uid://b4umyp8v6d7l5" path="res://models/dungeon_assets/building/pillar.glb" id="1_fv82l"]
+[ext_resource type="PackedScene" uid="uid://b4umyp8v6d7l5" path="res://models/spawn_assets/building/pillar.glb" id="1_fv82l"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_7anak"]
 radius = 0.6220703

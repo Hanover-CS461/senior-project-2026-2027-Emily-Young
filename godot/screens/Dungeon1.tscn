@@ -1,0 +1,214 @@
+[gd_scene format=3 uid="uid://d05ilvutopy84"]
+
+[ext_resource type="Script" uid="uid://bempvqvskvxb7" path="res://main.gd" id="1_gm3jy"]
+[ext_resource type="Script" uid="uid://82l1c27xikiy" path="res://playable_character/Mage/player_1.gd" id="2_88ihb"]
+[ext_resource type="PackedScene" uid="uid://bpxvsjdlsbu2" path="res://playable_character/Mage/mage.tscn" id="3_mkt6u"]
+[ext_resource type="PackedScene" uid="uid://ulrdvgivr3a5" path="res://playable_character/Mage/MageTarget.tscn" id="4_g4sfs"]
+[ext_resource type="Script" uid="uid://qebgsojebqda" path="res://playable_character/Mage/mage_target.gd" id="5_kndae"]
+[ext_resource type="PackedScene" uid="uid://cd8p13blmmgll" path="res://playable_character/Mage/magic_projectile.tscn" id="6_dfgm3"]
+[ext_resource type="Script" uid="uid://dufvuvy5to3ii" path="res://playable_character/Knight/player_2.gd" id="7_h03xv"]
+[ext_resource type="PackedScene" uid="uid://j5lk4xmfrr65" path="res://playable_character/Knight/knight.tscn" id="8_52lnc"]
+[ext_resource type="Script" uid="uid://dyvllyjep8pyu" path="res://playable_character/Mage/ArduinoMage.gd" id="11_n7bgw"]
+[ext_resource type="PackedScene" uid="uid://3u418nj08hwt" path="res://models/dungeon_assets/GLB format/room-small.glb" id="12_88ihb"]
+[ext_resource type="PackedScene" uid="uid://cbsdexlttyaut" path="res://models/dungeon_assets/GLB format/gate-door.glb" id="13_mkt6u"]
+[ext_resource type="PackedScene" uid="uid://dh7hioi7a1y53" path="res://models/dungeon_assets/GLB format/corridor.glb" id="14_kndae"]
+[ext_resource type="PackedScene" uid="uid://ba4jjhf5cvkt4" path="res://models/dungeon_assets/GLB format/corridor-transition.glb" id="15_dfgm3"]
+[ext_resource type="PackedScene" uid="uid://be12ke3fl8u5q" path="res://minion.tscn" id="16_dfgm3"]
+[ext_resource type="PackedScene" uid="uid://126vl0m2xk50" path="res://models/dungeon_assets/GLB format/gate-metal-bars.glb" id="16_h03xv"]
+[ext_resource type="PackedScene" uid="uid://dquvobki8wtu2" path="res://models/dungeon_assets/GLB format/room-wide.glb" id="17_52lnc"]
+[ext_resource type="PackedScene" uid="uid://blwh4hg1i8ibt" path="res://models/dungeon_assets/GLB format/template-wall.glb" id="17_h03xv"]
+[ext_resource type="Script" uid="uid://0uu611vsbxfb" path="res://models/dungeon_assets/GLB format/gate_metal_bars.gd" id="18_52lnc"]
+[ext_resource type="Script" uid="uid://clasa04044myp" path="res://models/dungeon_assets/GLB format/gate_metal_bars3.gd" id="19_vvg5t"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7dm0k"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_ig7tw"]
+sky_material = SubResource("ProceduralSkyMaterial_7dm0k")
+
+[sub_resource type="Environment" id="Environment_0xm2m"]
+background_mode = 2
+sky = SubResource("Sky_ig7tw")
+glow_enabled = true
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_7anak"]
+radius = 0.15820313
+height = 0.6477051
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_d87lq"]
+size = Vector3(3.3581543, 1, 2.5585938)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7anak"]
+size = Vector3(5.083374, 3.8041992, 3.8530273)
+
+[node name="Main" type="Node3D" unique_id=1941153417]
+script = ExtResource("1_gm3jy")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1947631280]
+environment = SubResource("Environment_0xm2m")
+
+[node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=1049476715]
+use_collision = true
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="CSGCombiner3D" unique_id=14009123]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Player1" type="CharacterBody3D" parent="." unique_id=1822628822 groups=["player1"]]
+transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 1.3603921, 0.10180056, 2.7507029)
+script = ExtResource("2_88ihb")
+
+[node name="Mage" parent="Player1" unique_id=1450532828 instance=ExtResource("3_mkt6u")]
+transform = Transform3D(0.30000004, 0, 0, 0, 0.30000004, 0, 0, 0, 0.30000004, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player1" unique_id=600453214]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0029289837, 0.33496302, 0.027015448)
+shape = SubResource("CapsuleShape3D_7anak")
+
+[node name="CameraPivot" type="Node3D" parent="Player1" unique_id=2091416183]
+
+[node name="Camera3D" type="Camera3D" parent="Player1/CameraPivot" unique_id=1037081052]
+transform = Transform3D(-0.99999064, -0.00040322726, 0.0043514688, 0, 0.9957343, 0.09226934, -0.0043701115, 0.09226846, -0.9957247, -0.18942639, 0.71214795, -0.64733046)
+cull_mask = 1048574
+current = true
+
+[node name="MageTarget" parent="Player1" unique_id=1589360695 instance=ExtResource("4_g4sfs")]
+script = ExtResource("5_kndae")
+projectile_scene = ExtResource("6_dfgm3")
+
+[node name="Player2" type="CharacterBody3D" parent="." unique_id=2011593326 groups=["player2"]]
+transform = Transform3D(-0.8985037, 0, 0.4389659, 0, 1, 0, -0.4389659, 0, -0.8985037, 1.0306811, 0.10803798, 3.5796404)
+script = ExtResource("7_h03xv")
+
+[node name="CameraPivot" type="Node3D" parent="Player2" unique_id=1807085389]
+transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, -2.9802322e-08, 0.10180056, 1.4417446)
+
+[node name="Camera3D" type="Camera3D" parent="Player2/CameraPivot" unique_id=232313805]
+transform = Transform3D(-0.99999064, -0.0004032271, 0.004351468, 0, 0.9957343, 0.092269324, -0.0043701106, 0.092268445, -0.9957247, -0.35786808, 0.7121482, -2.1386418)
+cull_mask = 1048574
+current = true
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="Player2" unique_id=1446997063]
+transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 0.0029289536, 0.32602856, -0.0059509277)
+shape = SubResource("CapsuleShape3D_7anak")
+
+[node name="Knight" parent="Player2" unique_id=300010165 instance=ExtResource("8_52lnc")]
+transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0, 0)
+
+[node name="SplitScreen" type="Control" parent="." unique_id=1806438055]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SplitScreen" unique_id=1968252341]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Player1Viewport" type="SubViewportContainer" parent="SplitScreen/VBoxContainer" unique_id=1972324176]
+layout_mode = 2
+size_flags_vertical = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="SplitScreen/VBoxContainer/Player1Viewport" unique_id=681722233]
+handle_input_locally = false
+size = Vector2i(1152, 322)
+render_target_update_mode = 4
+
+[node name="Player1SplitCamera" type="Camera3D" parent="SplitScreen/VBoxContainer/Player1Viewport/SubViewport" unique_id=1154668531]
+
+[node name="Player2Viewport" type="SubViewportContainer" parent="SplitScreen/VBoxContainer" unique_id=460845386]
+layout_mode = 2
+size_flags_vertical = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="SplitScreen/VBoxContainer/Player2Viewport" unique_id=350728159]
+handle_input_locally = false
+size = Vector2i(1152, 322)
+render_target_update_mode = 4
+
+[node name="Player2SplitCamera" type="Camera3D" parent="SplitScreen/VBoxContainer/Player2Viewport/SubViewport" unique_id=856477342]
+
+[node name="ArduinoMage" type="Node3D" parent="." unique_id=741397055]
+script = ExtResource("11_n7bgw")
+
+[node name="Dungeon1Map" type="Node3D" parent="." unique_id=513330419]
+
+[node name="Spawn" type="Node3D" parent="Dungeon1Map" unique_id=801023976]
+
+[node name="corridor2" parent="Dungeon1Map/Spawn" unique_id=1622336941 instance=ExtResource("14_kndae")]
+transform = Transform3D(-2.1855694e-08, 0, -0.5, 0, 0.5, 0, 0.5, 0, -2.1855694e-08, 1.4169343, 0.0958364, -0.88685715)
+
+[node name="gate-door3" parent="Dungeon1Map/Spawn" unique_id=2133305469 instance=ExtResource("13_mkt6u")]
+transform = Transform3D(-2.9380292e-08, 0, -0.67214274, 0, 0.67214274, 0, 0.67214274, 0, -2.9380292e-08, -1.4853351, 0.06772685, 3.1757445)
+
+[node name="gate-door2" parent="Dungeon1Map/Spawn" unique_id=1535100354 instance=ExtResource("13_mkt6u")]
+transform = Transform3D(0.6721428, 0, 0, 0, 0.6721428, 0, 0, 0, 0.6721428, 1.4160633, 0.06772685, 5.923516)
+
+[node name="room-small2" parent="Dungeon1Map/Spawn" unique_id=1610188031 instance=ExtResource("12_88ihb")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 1.4248759, 0.099999905, 3.1064112)
+
+[node name="Minion_Den" parent="Dungeon1Map" unique_id=702868228 instance=ExtResource("17_52lnc")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 1.5124259, 0.0703758, -8.78553)
+
+[node name="minion" parent="Dungeon1Map/Minion_Den" unique_id=289258388 groups=["gate_minions"] instance=ExtResource("16_dfgm3")]
+transform = Transform3D(-2, 0, 1.7484555e-07, 0, 2, 0, -1.7484555e-07, 0, -2, -0.54140425, 1.9282103e-05, -2.8355064)
+
+[node name="FightArea" type="Area3D" parent="Dungeon1Map/Minion_Den/minion" unique_id=540908439]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dungeon1Map/Minion_Den/minion/FightArea" unique_id=500140273]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2530514, 0, -2.4290452)
+shape = SubResource("BoxShape3D_d87lq")
+
+[node name="minion2" parent="Dungeon1Map/Minion_Den" unique_id=582405529 groups=["gate_minions"] instance=ExtResource("16_dfgm3")]
+transform = Transform3D(-1.8718313, 0, -0.7044486, 0, 2, 0, 0.7044486, 0, -1.8718313, -3.5677679, 1.8805265e-05, -0.6093273)
+
+[node name="FightArea" type="Area3D" parent="Dungeon1Map/Minion_Den/minion2" unique_id=346807604]
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="Dungeon1Map/Minion_Den/minion2/FightArea" unique_id=1831651756]
+transform = Transform3D(0.93591547, 0, -0.35222435, 0, 1, 0, 0.35222435, 0, 0.93591547, -1.1941864, 2.3841858e-07, -1.8413692)
+shape = SubResource("BoxShape3D_d87lq")
+
+[node name="minion3" parent="Dungeon1Map/Minion_Den" unique_id=102224367 groups=["gate_minions"] instance=ExtResource("16_dfgm3")]
+transform = Transform3D(-1.3213413, 0, 1.5013518, 0, 2, 0, -1.5013518, 0, -1.3213413, 3.226379, 0.05001971, -0.5058155)
+
+[node name="FightArea" type="Area3D" parent="Dungeon1Map/Minion_Den/minion3" unique_id=1389774229]
+
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="Dungeon1Map/Minion_Den/minion3/FightArea" unique_id=158686500]
+transform = Transform3D(0.6606707, 0, 0.75067574, 0, 1, 0, -0.75067574, 0, 0.6606707, 0.13836145, -0.025000215, -2.0507245)
+shape = SubResource("BoxShape3D_d87lq")
+
+[node name="corridor-transition2" parent="Dungeon1Map/Minion_Den" unique_id=1823783262 instance=ExtResource("15_dfgm3")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.25313997, 0.015533328, 7.9719296)
+
+[node name="gate-metal-bars4" parent="Dungeon1Map/Minion_Den" unique_id=10281909 instance=ExtResource("16_h03xv")]
+transform = Transform3D(0.022808105, 0, -1.3398062, 0, 1.3400003, 0, 1.3398062, 0, 0.022808105, -9.933346, -0.08808589, 0.021930695)
+
+[node name="gate-door4" parent="Dungeon1Map/Minion_Den" unique_id=1393888030 instance=ExtResource("13_mkt6u")]
+transform = Transform3D(-5.8760584e-08, 0, -1.3442855, 0, 1.3442855, 0, 1.3442855, 0, -5.8760584e-08, 9.493376, -0.0052978992, 0.006324768)
+
+[node name="template-wall2" parent="Dungeon1Map/Minion_Den" unique_id=1819335486 instance=ExtResource("17_h03xv")]
+transform = Transform3D(-1.0000001, 0, 0, 0, 1, 0, 0, 0, -1.0000001, -0.22580671, 0.02963841, -6.050308)
+
+[node name="den_entrance" type="Node3D" parent="Dungeon1Map/Minion_Den" unique_id=336491110]
+
+[node name="gate-metal-bars2" parent="Dungeon1Map/Minion_Den/den_entrance" unique_id=937894055 instance=ExtResource("16_h03xv")]
+transform = Transform3D(1.3400002, 0, 0, 0, 1.3400002, 0, 0, 0, 1.3400002, 0.037744045, -0.08808589, 5.7949314)
+script = ExtResource("18_52lnc")
+
+[node name="DetectionArea" type="Area3D" parent="Dungeon1Map/Minion_Den/den_entrance/gate-metal-bars2" unique_id=593563762]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dungeon1Map/Minion_Den/den_entrance/gate-metal-bars2/DetectionArea" unique_id=1035628140]
+transform = Transform3D(1.0000001, 0, 0, 0, 1.0000001, 0, 0, 0, 1.0000001, -0.20684767, 1.4020998, 1.4265137)
+shape = SubResource("BoxShape3D_7anak")
+
+[node name="gate-metal-bars3" parent="." unique_id=1152951560 instance=ExtResource("16_h03xv")]
+transform = Transform3D(-2.928663e-08, 0, 0.67, 0, 0.67, 0, -0.67, 0, -2.928663e-08, 4.4741707, 0.07711798, 3.1359627)
+script = ExtResource("19_vvg5t")

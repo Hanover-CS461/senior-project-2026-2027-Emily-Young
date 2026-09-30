@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://cd8p13blmmgll"]
+
+[ext_resource type="Script" uid="uid://fhi6bn5ny2lr" path="res://playable_character/Mage/magic_projectile.gd" id="1_vqi8e"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7anak"]
+albedo_color = Color(0.28252572, 0.8164844, 0, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_d87lq"]
+radius = 0.15
+height = 0.3
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_d87lq"]
+radius = 0.21244554
+
+[node name="MagicProjectile" type="MeshInstance3D" unique_id=1638654115]
+material_override = SubResource("StandardMaterial3D_7anak")
+mesh = SubResource("SphereMesh_d87lq")
+script = ExtResource("1_vqi8e")
+
+[node name="Area3D" type="Area3D" parent="." unique_id=986715088]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=1278865544]
+shape = SubResource("SphereShape3D_d87lq")

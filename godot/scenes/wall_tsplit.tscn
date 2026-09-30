@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cr3j5qylbmkhi"]
 
-[ext_resource type="PackedScene" uid="uid://cyhug08dnhi78" path="res://models/dungeon_assets/building/wall_tsplit.glb" id="1_w0t5e"]
+[ext_resource type="PackedScene" uid="uid://cyhug08dnhi78" path="res://models/spawn_assets/building/wall_tsplit.glb" id="1_w0t5e"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_d87lq"]
 size = Vector3(3.9986572, 0.50579834, 1)
