@@ -16,7 +16,6 @@
 [ext_resource type="PackedScene" uid="uid://cr3j5qylbmkhi" path="res://scenes/wall_tsplit.tscn" id="17_cegan"]
 [ext_resource type="PackedScene" uid="uid://bwuwilfmg1a4b" path="res://scenes/doorway.tscn" id="17_yaehf"]
 [ext_resource type="PackedScene" uid="uid://ceswp7mkga23l" path="res://scenes/wall_basic.tscn" id="18_074og"]
-[ext_resource type="Script" uid="uid://dyvllyjep8pyu" path="res://playable_character/Mage/ArduinoMage.gd" id="18_82xsv"]
 [ext_resource type="PackedScene" uid="uid://xgb5mesukfmn" path="res://scenes/wall_corner.tscn" id="18_cegan"]
 [ext_resource type="PackedScene" uid="uid://bq4k821crmbwm" path="res://scenes/wall_window_closed.tscn" id="21_ryguw"]
 [ext_resource type="PackedScene" uid="uid://d2n7vuni76pi6" path="res://models/spawn_assets/props/torch_mounted.glb" id="22_d13ii"]
@@ -373,9 +372,6 @@ transform = Transform3D(0.38980657, 0, 0, 0, 0.38980657, 0, 0, 0, 0.38980657, 0.
 
 [node name="coin_stack" parent="Spawn Area" unique_id=575087267 instance=ExtResource("2_jq2sk")]
 transform = Transform3D(-0.26797253, 0, 0.27344966, 0, 0.3828629, 0, -0.27344966, 0, -0.26797253, -0.37423038, 0.14193815, 6.2374387)
-
-[node name="ArduinoMage" type="Node3D" parent="." unique_id=741397055]
-script = ExtResource("18_82xsv")
 
 [node name="DungeonKeeper" parent="." unique_id=1710661864 instance=ExtResource("34_4k2k6")]
 transform = Transform3D(0.22651309, 0, -0.2365886, 0, 0.32753983, 0, 0.2365886, 0, 0.22651309, 2.311661, 0.18007587, 1.2957094)

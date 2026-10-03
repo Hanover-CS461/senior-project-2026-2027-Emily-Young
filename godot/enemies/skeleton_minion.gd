@@ -210,12 +210,18 @@ func _physics_process(delta):
 
 
 	# ============================================================
-	# FIND CLOSEST PLAYER
+	# FIND CLOSEST ALIVE PLAYER
 	# ============================================================
 
 	target_player = get_closest_player()
 
 	if target_player == null:
+
+		velocity.x = 0
+		velocity.z = 0
+
+		move_and_slide()
+
 		return
 
 
@@ -224,6 +230,20 @@ func _physics_process(delta):
 	# ============================================================
 
 	if is_attacking:
+
+		# If the target died while the skeleton was preparing
+		# its attack, cancel the attack.
+		if target_player.is_dead:
+
+			is_attacking = false
+			attack_timer_active = 0.0
+
+			play_animation(
+				"Rig_Medium_General/Idle_A"
+			)
+
+			return
+
 
 		var attack_target = (
 			target_player.global_position
@@ -251,17 +271,20 @@ func _physics_process(delta):
 
 			if distance <= attack_range:
 
-				if target_player.has_method("take_damage"):
+				# Check one more time before dealing damage.
+				if not target_player.is_dead:
 
-					target_player.take_damage(
-						attack_damage
+					if target_player.has_method("take_damage"):
+
+						target_player.take_damage(
+							attack_damage
+						)
+
+					print(
+						"Skeleton hits ",
+						target_player.name,
+						"!"
 					)
-
-				print(
-					"Skeleton hits ",
-					target_player.name,
-					"!"
-				)
 
 			else:
 
@@ -337,7 +360,11 @@ func get_closest_player():
 	var closest_distance = INF
 
 
-	if player1 != null:
+	# ============================================================
+	# PLAYER 1
+	# ============================================================
+
+	if player1 != null and not player1.is_dead:
 
 		var distance_to_player1 = (
 			global_position.distance_to(
@@ -351,7 +378,11 @@ func get_closest_player():
 			closest_player = player1
 
 
-	if player2 != null:
+	# ============================================================
+	# PLAYER 2
+	# ============================================================
+
+	if player2 != null and not player2.is_dead:
 
 		var distance_to_player2 = (
 			global_position.distance_to(
@@ -369,6 +400,14 @@ func get_closest_player():
 
 
 func attack():
+
+	# Make sure there is still an alive target.
+	if target_player == null:
+		return
+
+	if target_player.is_dead:
+		return
+
 
 	print(
 		"Skeleton starts attacking ",

@@ -8,8 +8,8 @@ extends Node3D
 
 
 var arduino
-
 var is_charging = false
+var has_initialized_slider = false
 
 
 @onready var circle = $Circle
@@ -18,7 +18,7 @@ var is_charging = false
 
 func _ready():
 
-	arduino = get_tree().current_scene.get_node("ArduinoMage")
+	arduino = ArduinoMage
 
 	visible = false
 
@@ -26,17 +26,40 @@ func _ready():
 func _process(_delta):
 
 	if arduino == null:
+
 		return
 
+
 	if not arduino.has_received_slider:
+
 		return
+
+
+	# --------------------------------------------------
+	# INITIALIZE SLIDER
+	# --------------------------------------------------
+
+	if not has_initialized_slider:
+
+		has_initialized_slider = true
+
+		is_charging = false
+
+		visible = false
+
+		return
+
+
+	# --------------------------------------------------
+	# GET SLIDER
+	# --------------------------------------------------
 
 	var slider = arduino.slider
 
 
-	# ==========================================
-	# SLIDER IS PULLED
-	# ==========================================
+	# --------------------------------------------------
+	# CHARGING
+	# --------------------------------------------------
 
 	if slider < 0.95:
 
@@ -44,8 +67,6 @@ func _process(_delta):
 
 		visible = true
 
-
-		# Convert slider position into distance
 
 		var amount = (0.95 - slider) / 0.95
 
@@ -56,10 +77,6 @@ func _process(_delta):
 		)
 
 
-		# ==========================================
-		# MOVE TARGET
-		# ==========================================
-
 		position = Vector3(
 			0,
 			0,
@@ -67,13 +84,10 @@ func _process(_delta):
 		)
 
 
-		# ==========================================
-		# MAKE CIRCLE PULSE
-		# ==========================================
-
 		var pulse = 1.0 + sin(
 			Time.get_ticks_msec() * 0.005
 		) * 0.08
+
 
 		circle.scale = Vector3(
 			pulse,
@@ -82,15 +96,12 @@ func _process(_delta):
 		)
 
 
-		# ==========================================
-		# AIM LINE
-		# ==========================================
-
 		aim_line.position = Vector3(
 			0,
 			0,
 			0
 		)
+
 
 		aim_line.scale = Vector3(
 			1,
@@ -99,9 +110,9 @@ func _process(_delta):
 		)
 
 
-	# ==========================================
-	# SLIDER RELEASED
-	# ==========================================
+	# --------------------------------------------------
+	# RELEASE
+	# --------------------------------------------------
 
 	else:
 
@@ -111,12 +122,9 @@ func _process(_delta):
 
 			is_charging = false
 
+
 		visible = false
 
-
-# ==========================================
-# CAST SPELL
-# ==========================================
 
 func cast_spell():
 
@@ -127,21 +135,14 @@ func cast_spell():
 		return
 
 
-	# ==========================================
-	# GET TARGET POSITION
-	# ==========================================
-
 	var target_position = (
 		circle.global_position
 		+ global_transform.basis.z * 0.5
 	)
 
 
-	# ==========================================
-	# CREATE PROJECTILE
-	# ==========================================
-
 	var projectile = projectile_scene.instantiate()
+
 
 	if projectile == null:
 
@@ -150,56 +151,40 @@ func cast_spell():
 		return
 
 
-	# ==========================================
-	# ADD PROJECTILE TO MAIN SCENE
-	# ==========================================
-
 	get_tree().current_scene.add_child(projectile)
 
 
-	# ==========================================
-	# START AT MAGE
-	# ==========================================
-
 	var mage = get_parent()
+
 
 	projectile.global_position = mage.global_position
 
 
-	# ==========================================
-	# GIVE PROJECTILE TARGET
-	# ==========================================
-
 	projectile.set_target(target_position)
 
-
-	# ==========================================
-	# GIVE PROJECTILE SPELL
-	# ==========================================
 
 	projectile.set_spell(
 		arduino.spells[arduino.selected_spell]
 	)
 
 
-	# ==========================================
-	# DEBUG
-	# ==========================================
-
 	print(
 		"PROJECTILE CREATED: ",
 		arduino.spells[arduino.selected_spell]
 	)
+
 
 	print(
 		"Projectile position: ",
 		projectile.global_position
 	)
 
+
 	print(
 		"Projectile target: ",
 		target_position
 	)
+
 
 	print(
 		"MAGE CASTS ",

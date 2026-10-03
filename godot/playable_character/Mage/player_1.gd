@@ -19,6 +19,11 @@ const JUMP_VELOCITY = 4.5
 var current_animation = ""
 var is_jumping = false
 var is_landing = false
+var is_hit = false
+var is_dead = false
+
+
+var health = 100
 
 
 var arduino
@@ -28,9 +33,11 @@ func _ready():
 
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
-	play_animation("Rig_Medium_General/Idle_A")
+	play_animation(
+		"Rig_Medium_General/Idle_A"
+	)
 
-	arduino = get_tree().current_scene.get_node("ArduinoMage")
+	arduino = ArduinoMage
 
 
 func play_animation(animation_name: String):
@@ -43,6 +50,30 @@ func play_animation(animation_name: String):
 
 
 func _input(event):
+
+	# ==========================================
+	# ESCAPE
+	# ==========================================
+
+	if event.is_action_pressed("ui_cancel"):
+
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+		return
+
+
+	# ==========================================
+	# DEAD
+	# ==========================================
+
+	if is_dead:
+
+		return
+
+
+	# ==========================================
+	# MOUSE CAMERA
+	# ==========================================
 
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 
@@ -61,10 +92,9 @@ func _input(event):
 		)
 
 
-	if event.is_action_pressed("ui_cancel"):
-
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-
+	# ==========================================
+	# CAPTURE MOUSE
+	# ==========================================
 
 	if event is InputEventMouseButton and event.pressed:
 
@@ -81,6 +111,36 @@ func _physics_process(delta):
 	if not is_on_floor():
 
 		velocity += get_gravity() * delta
+
+
+	# ==========================================
+	# DEAD
+	# ==========================================
+
+	if is_dead:
+
+		velocity.x = 0
+		velocity.z = 0
+
+		move_and_slide()
+
+		return
+
+
+	# ==========================================
+	# HIT ANIMATION
+	# ==========================================
+
+	if is_hit:
+
+		var hit_length = animation_player.current_animation_length
+
+		var hit_position = animation_player.current_animation_position
+
+
+		if hit_position >= hit_length:
+
+			is_hit = false
 
 
 	# ==========================================
@@ -126,15 +186,18 @@ func _physics_process(delta):
 
 	var direction = Vector3.ZERO
 
+	var joystick_x = 0.0
+	var joystick_y = 0.0
+
 
 	if arduino != null:
 
-		var joystick_x = arduino.joystick_x
-		var joystick_y = arduino.joystick_y
+		joystick_x = arduino.joystick_x
+		joystick_y = arduino.joystick_y
 
 
-		direction.x = -joystick_x
-		direction.z = -joystick_y
+	direction.x = -joystick_x
+	direction.z = -joystick_y
 
 
 	# ==========================================
@@ -185,7 +248,12 @@ func _physics_process(delta):
 		arduino.jump_pressed = false
 
 
-	if jump_requested and is_on_floor() and not is_landing:
+	if (
+		jump_requested
+		and is_on_floor()
+		and not is_landing
+		and not is_hit
+	):
 
 		velocity.y = JUMP_VELOCITY
 
@@ -223,17 +291,30 @@ func _physics_process(delta):
 			should_run = true
 
 
+		# ==========================================
+		# RUNNING
+		# ==========================================
+
 		if should_run:
 
 			velocity.x = direction.x * RUN_SPEED
 			velocity.z = direction.z * RUN_SPEED
 
 
-			if not is_jumping and not is_landing:
+			if (
+				not is_jumping
+				and not is_landing
+				and not is_hit
+			):
 
 				play_animation(
 					"Rig_Medium_MovementBasic/Running_A"
 				)
+
+
+		# ==========================================
+		# WALKING
+		# ==========================================
 
 		else:
 
@@ -241,11 +322,45 @@ func _physics_process(delta):
 			velocity.z = direction.z * WALK_SPEED
 
 
-			if not is_jumping and not is_landing:
+			if (
+				not is_jumping
+				and not is_landing
+				and not is_hit
+			):
 
-				play_animation(
-					"Rig_Medium_MovementBasic/Walking_C"
-				)
+
+				# ==========================================
+				# WALKING FORWARD
+				# ==========================================
+
+				if joystick_y < -0.15:
+
+					play_animation(
+						"Rig_Medium_MovementBasic/Walking_C"
+					)
+
+
+				# ==========================================
+				# WALKING BACKWARD
+				# ==========================================
+
+				elif joystick_y > 0.15:
+
+					play_animation(
+						"Rig_Medium_MovementAdvanced/Walking_Backwards"
+					)
+
+
+				# ==========================================
+				# SIDEWAYS
+				# ==========================================
+
+				else:
+
+					play_animation(
+						"Rig_Medium_MovementBasic/Walking_C"
+					)
+
 
 	else:
 
@@ -253,7 +368,11 @@ func _physics_process(delta):
 		velocity.z = 0
 
 
-		if not is_jumping and not is_landing:
+		if (
+			not is_jumping
+			and not is_landing
+			and not is_hit
+		):
 
 			play_animation(
 				"Rig_Medium_General/Idle_A"
@@ -282,6 +401,10 @@ func _physics_process(delta):
 		)
 
 
+	# ==========================================
+	# LANDING ANIMATION
+	# ==========================================
+
 	if is_landing:
 
 		var landing_length = animation_player.current_animation_length
@@ -309,12 +432,105 @@ func _physics_process(delta):
 
 			else:
 
-				play_animation(
-					"Rig_Medium_MovementBasic/Walking_C"
-				)
+				# ==========================================
+				# LANDING WHILE MOVING FORWARD
+				# ==========================================
+
+				if joystick_y < -0.15:
+
+					play_animation(
+						"Rig_Medium_MovementBasic/Walking_C"
+					)
+
+
+				# ==========================================
+				# LANDING WHILE MOVING BACKWARD
+				# ==========================================
+
+				elif joystick_y > 0.15:
+
+					play_animation(
+						"Rig_Medium_MovementAdvanced/Walking_Backwards"
+					)
+
+
+				# ==========================================
+				# LANDING WHILE MOVING SIDEWAYS
+				# ==========================================
+
+				else:
+
+					play_animation(
+						"Rig_Medium_MovementBasic/Walking_C"
+					)
 
 		else:
 
 			play_animation(
 				"Rig_Medium_General/Idle_A"
 			)
+
+
+# ==========================================
+# HEALTH / DAMAGE
+# ==========================================
+
+func take_damage(amount):
+
+	if is_dead:
+
+		return
+
+
+	health -= amount
+
+
+	print(
+		"Player 1 health: ",
+		health
+	)
+
+
+	# ==========================================
+	# DEATH
+	# ==========================================
+
+	if health <= 0:
+
+		health = 0
+
+		is_dead = true
+		is_hit = false
+		is_jumping = false
+		is_landing = false
+
+		velocity = Vector3.ZERO
+
+		animation_player.stop()
+
+		current_animation = ""
+
+		animation_player.play(
+			"Rig_Medium_General/Death_B"
+		)
+
+		current_animation = (
+			"Rig_Medium_General/Death_B"
+		)
+
+		print(
+			"Player 1 defeated!"
+		)
+
+		return
+
+
+	# ==========================================
+	# NORMAL HIT
+	# ==========================================
+
+	is_hit = true
+
+	play_animation(
+		"Rig_Medium_General/Hit_A"
+	)
