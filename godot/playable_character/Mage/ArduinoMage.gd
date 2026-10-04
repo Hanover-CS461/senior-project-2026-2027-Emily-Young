@@ -21,6 +21,7 @@ var slider_was_pulled = false
 
 var jump_pressed = false
 var sprint_pressed = false
+var interact_pressed = false
 
 
 var selected_spell = 0
@@ -39,7 +40,6 @@ const RIGHT_CENTER_X = 509.0
 const RIGHT_CENTER_Y = 514.0
 
 const DEAD_ZONE = 0.08
-
 
 const CHARGE_THRESHOLD = 0.95
 
@@ -201,6 +201,15 @@ func _on_data_received(
 
 
 		# ------------------------------------------
+		# INTERACTION - ENCODER CLICK
+		# ------------------------------------------
+
+		elif line == "INTERACT":
+
+			interact_pressed = true
+
+
+		# ------------------------------------------
 		# SPELL SELECT
 		# ------------------------------------------
 
@@ -292,10 +301,6 @@ func _on_data_received(
 
 					has_received_slider = true
 					slider_initialized = true
-
-					# IMPORTANT:
-					# Do NOT allow the first reading
-					# to start a spell.
 
 					slider_was_pulled = false
 

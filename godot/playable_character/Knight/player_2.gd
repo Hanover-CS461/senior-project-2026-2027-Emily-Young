@@ -7,6 +7,11 @@ const JUMP_VELOCITY = 4.5
 const CAMERA_SENSITIVITY = 2.5
 const VERTICAL_CAMERA_SENSITIVITY = 1.5
 
+const DODGE_SPEED = 7.0
+const DODGE_DURATION = 0.22
+const DODGE_COOLDOWN = 0.8
+const DODGE_RECOVERY = 0.12
+
 
 @onready var animation_player = $Knight/AnimationPlayer
 @onready var camera_pivot = $CameraPivot
@@ -34,6 +39,17 @@ var attack_range = 1.5
 var is_shielding = false
 var shield_starting = false
 var is_blocking_hit = false
+
+
+# ==========================================
+# DODGE
+# ==========================================
+
+var is_dodging = false
+var dodge_timer = 0.0
+var dodge_cooldown_timer = 0.0
+var dodge_recovery_timer = 0.0
+var dodge_direction = Vector3.ZERO
 
 
 func _ready():
@@ -68,6 +84,79 @@ func _physics_process(delta):
 			velocity += get_gravity() * delta
 
 		move_and_slide()
+
+		return
+
+
+	# ==========================================
+	# DODGE TIMERS
+	# ==========================================
+
+	if dodge_cooldown_timer > 0:
+
+		dodge_cooldown_timer -= delta
+
+
+	# ==========================================
+	# DODGING
+	# ==========================================
+
+	if is_dodging:
+
+		dodge_timer -= delta
+
+		velocity.x = dodge_direction.x * DODGE_SPEED
+		velocity.z = dodge_direction.z * DODGE_SPEED
+
+		move_and_slide()
+
+		if dodge_timer <= 0:
+
+			is_dodging = false
+
+			dodge_recovery_timer = DODGE_RECOVERY
+
+			velocity.x = 0
+			velocity.z = 0
+
+		return
+
+
+	# ==========================================
+	# DODGE RECOVERY
+	# ==========================================
+
+	if dodge_recovery_timer > 0:
+
+		dodge_recovery_timer -= delta
+
+		velocity.x = 0
+		velocity.z = 0
+
+		if dodge_recovery_timer <= 0:
+
+			dodge_recovery_timer = 0
+
+		return
+
+
+	# ==========================================
+	# DODGE INPUT
+	# ==========================================
+
+	if (
+		arduino_knight.dodge_pressed
+		and dodge_cooldown_timer <= 0
+		and not is_jumping
+		and not is_landing
+		and not is_attacking
+		and not is_shielding
+		and not is_hit
+	):
+
+		arduino_knight.dodge_pressed = false
+
+		start_dodge()
 
 		return
 
@@ -346,8 +435,22 @@ func _physics_process(delta):
 	# JUMP
 	# ==========================================
 
-	if (
+	var jump_requested = (
 		Input.is_action_just_pressed("p2_jump")
+	)
+
+
+	# Physical Knight controller jump button
+
+	if arduino_knight.jump_pressed:
+
+		jump_requested = true
+
+		arduino_knight.jump_pressed = false
+
+
+	if (
+		jump_requested
 		and is_on_floor()
 		and not is_landing
 		and not is_shielding
@@ -514,6 +617,90 @@ func _physics_process(delta):
 
 
 # ==========================================
+# DODGE
+# ==========================================
+
+func start_dodge():
+
+	is_dodging = true
+
+	dodge_timer = DODGE_DURATION
+	dodge_cooldown_timer = DODGE_COOLDOWN
+
+
+	var joystick = arduino_knight.get_movement()
+
+
+	# ==========================================
+	# CHOOSE DODGE DIRECTION
+	# ==========================================
+
+	if joystick.length() > 0:
+
+		if abs(joystick.x) > abs(joystick.y):
+
+			# Left / Right
+
+			if joystick.x < 0:
+
+				play_animation(
+					"Rig_Medium_MovementAdvanced/Dodge_Right"
+				)
+
+			else:
+
+				play_animation(
+					"Rig_Medium_MovementAdvanced/Dodge_Left"
+				)
+
+		else:
+
+			# Forward / Backward
+
+			if joystick.y < 0:
+
+				play_animation(
+					"Rig_Medium_MovementAdvanced/Dodge_Forward"
+				)
+
+			else:
+
+				play_animation(
+					"Rig_Medium_MovementAdvanced/Dodge_Backward"
+				)
+
+
+		dodge_direction.z = -joystick.y
+		dodge_direction.x = -joystick.x
+
+		dodge_direction = (
+			dodge_direction.normalized()
+		)
+
+		dodge_direction = (
+			transform.basis
+			* dodge_direction
+		)
+
+	else:
+
+		# No movement = dodge forward
+
+		dodge_direction = (
+			-transform.basis.z
+		)
+
+		play_animation(
+			"Rig_Medium_MovementAdvanced/Dodge_Forward"
+		)
+
+
+	velocity.y = 0
+
+	print("Knight dodges!")
+
+
+# ==========================================
 # ATTACK
 # ==========================================
 
@@ -576,6 +763,8 @@ func take_damage(amount):
 		is_shielding = false
 		shield_starting = false
 		is_blocking_hit = false
+		is_dodging = false
+		dodge_recovery_timer = 0.0
 
 		velocity = Vector3.ZERO
 

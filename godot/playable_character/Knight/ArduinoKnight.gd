@@ -10,19 +10,24 @@ var move_y = 518
 var look_x = 517
 var look_y = 512
 
-var sprint = false
 
+var sprint = false
 var shield = false
 
+
 var attack_pressed = false
+var jump_pressed = false
+var interact_pressed = false
+var dodge_pressed = false
 
 
 func _ready():
 
 	manager = GdSerialManager.new()
 
-	manager.data_received.connect(_on_data_received)
-
+	manager.data_received.connect(
+		_on_data_received
+	)
 
 	if manager.open(
 		"COM6",
@@ -43,7 +48,10 @@ func _process(_delta):
 	manager.poll_events()
 
 
-func _on_data_received(port: String, data: PackedByteArray):
+func _on_data_received(
+	port: String,
+	data: PackedByteArray
+):
 
 	var text = data.get_string_from_utf8().strip_edges()
 
@@ -52,9 +60,47 @@ func _on_data_received(port: String, data: PackedByteArray):
 
 	for section in sections:
 
-		if section.begins_with("MOVE:"):
+		section = section.strip_edges()
 
-			var values = section.trim_prefix("MOVE:").split(",")
+
+		# ==========================================
+		# JUMP
+		# ==========================================
+
+		if section == "JUMP":
+
+			jump_pressed = true
+
+
+		# ==========================================
+		# INTERACTION
+		# ==========================================
+
+		elif section == "INTERACT":
+
+			interact_pressed = true
+
+
+		# ==========================================
+		# DODGE
+		# ==========================================
+
+		elif section == "DODGE":
+
+			dodge_pressed = true
+
+
+		# ==========================================
+		# MOVEMENT
+		# ==========================================
+
+		elif section.begins_with("MOVE:"):
+
+			var values = (
+				section
+				.trim_prefix("MOVE:")
+				.split(",")
+			)
 
 			if values.size() == 2:
 
@@ -62,9 +108,17 @@ func _on_data_received(port: String, data: PackedByteArray):
 				move_y = int(values[1])
 
 
+		# ==========================================
+		# CAMERA
+		# ==========================================
+
 		elif section.begins_with("LOOK:"):
 
-			var values = section.trim_prefix("LOOK:").split(",")
+			var values = (
+				section
+				.trim_prefix("LOOK:")
+				.split(",")
+			)
 
 			if values.size() == 2:
 
@@ -72,23 +126,44 @@ func _on_data_received(port: String, data: PackedByteArray):
 				look_y = int(values[1])
 
 
+		# ==========================================
+		# SPRINT
+		# ==========================================
+
 		elif section.begins_with("SPRINT:"):
 
-			var value = section.trim_prefix("SPRINT:")
+			var value = (
+				section
+				.trim_prefix("SPRINT:")
+			)
 
 			sprint = value == "1"
 
 
+		# ==========================================
+		# SHIELD
+		# ==========================================
+
 		elif section.begins_with("SHIELD:"):
 
-			var value = section.trim_prefix("SHIELD:")
+			var value = (
+				section
+				.trim_prefix("SHIELD:")
+			)
 
 			shield = value == "1"
 
 
+		# ==========================================
+		# ATTACK
+		# ==========================================
+
 		elif section.begins_with("ATTACK:"):
 
-			var value = section.trim_prefix("ATTACK:")
+			var value = (
+				section
+				.trim_prefix("ATTACK:")
+			)
 
 			if value == "1":
 
@@ -97,27 +172,49 @@ func _on_data_received(port: String, data: PackedByteArray):
 
 func get_movement():
 
-	var x = (move_x - 517) / 506.0
-	var y = (move_y - 518) / 505.0
+	var x = (
+		move_x - 517
+	) / 506.0
 
-	var movement = Vector2(x, y)
+	var y = (
+		move_y - 518
+	) / 505.0
+
+	var movement = Vector2(
+		x,
+		y
+	)
 
 	if movement.length() < 0.15:
 
 		return Vector2.ZERO
 
-	return movement.normalized() * min(movement.length(), 1.0)
+	return movement.normalized() * min(
+		movement.length(),
+		1.0
+	)
 
 
 func get_look():
 
-	var x = (look_x - 517) / 506.0
-	var y = (look_y - 512) / 511.0
+	var x = (
+		look_x - 517
+	) / 506.0
 
-	var look = Vector2(x, y)
+	var y = (
+		look_y - 512
+	) / 511.0
+
+	var look = Vector2(
+		x,
+		y
+	)
 
 	if look.length() < 0.15:
 
 		return Vector2.ZERO
 
-	return look.normalized() * min(look.length(), 1.0)
+	return look.normalized() * min(
+		look.length(),
+		1.0
+	)

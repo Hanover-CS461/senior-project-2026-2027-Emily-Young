@@ -185,7 +185,7 @@ transform = Transform3D(0.6606707, 0, 0.75067574, 0, 1, 0, -0.75067574, 0, 0.660
 shape = SubResource("BoxShape3D_d87lq")
 
 [node name="corridor-transition2" parent="Dungeon1Map/Minion_Den" unique_id=1823783262 instance=ExtResource("15_dfgm3")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.253, 0.1, 7.972)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.25300002, 0.045377597, 7.972)
 
 [node name="gate-metal-bars4" parent="Dungeon1Map/Minion_Den" unique_id=10281909 instance=ExtResource("16_h03xv")]
 transform = Transform3D(0.022808105, 0, -1.3398062, 0, 1.3400003, 0, 1.3398062, 0, 0.022808105, -9.933346, -0.08808589, 0.021930695)

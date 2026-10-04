@@ -7,6 +7,7 @@ const int rightJoystickY = A3;
 const int slider = A4;
 
 const int encoderDT = 2;
+const int interactButton = 3;  // Rotary encoder click (SW)
 const int encoderCLK = 4;
 
 const int jumpButton = 6;
@@ -19,6 +20,7 @@ const unsigned long encoderDebounce = 80;
 
 int lastJumpButtonState = HIGH;
 int lastSprintButtonState = HIGH;
+int lastInteractButtonState = HIGH;
 
 
 void setup() {
@@ -28,12 +30,14 @@ void setup() {
   pinMode(encoderDT, INPUT_PULLUP);
   pinMode(encoderCLK, INPUT_PULLUP);
 
+  pinMode(interactButton, INPUT_PULLUP);
   pinMode(jumpButton, INPUT_PULLUP);
   pinMode(sprintButton, INPUT_PULLUP);
 
   lastCLKState = digitalRead(encoderCLK);
   lastJumpButtonState = digitalRead(jumpButton);
   lastSprintButtonState = digitalRead(sprintButton);
+  lastInteractButtonState = digitalRead(interactButton);
 }
 
 
@@ -53,7 +57,7 @@ void loop() {
 
 
   // ==========================================
-  // ROTARY ENCODER
+  // ROTARY ENCODER - SPELL SELECTION
   // ==========================================
 
   int currentCLKState = digitalRead(encoderCLK);
@@ -81,6 +85,21 @@ void loop() {
 
 
   // ==========================================
+  // INTERACTION BUTTON - ENCODER CLICK
+  // ==========================================
+
+  int currentInteractButtonState = digitalRead(interactButton);
+
+  if (currentInteractButtonState == LOW &&
+      lastInteractButtonState == HIGH) {
+
+    Serial.println("INTERACT");
+  }
+
+  lastInteractButtonState = currentInteractButtonState;
+
+
+  // ==========================================
   // JUMP BUTTON
   // ==========================================
 
@@ -101,18 +120,14 @@ void loop() {
 
   int currentSprintButtonState = digitalRead(sprintButton);
 
-
   // L3 pressed
-
   if (currentSprintButtonState == LOW &&
       lastSprintButtonState == HIGH) {
 
     Serial.println("SPRINT");
   }
 
-
   // L3 released
-
   if (currentSprintButtonState == HIGH &&
       lastSprintButtonState == LOW) {
 
