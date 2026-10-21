@@ -1,0 +1,432 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://title_screen/title_screen.gd" id="1_title"]
+[ext_resource type="Script" path="res://title_screen/hero_backdrop.gd" id="2_hero"]
+[ext_resource type="Script" path="res://title_screen/rune_divider.gd" id="3_div"]
+
+[sub_resource type="Gradient" id="Gradient_bg"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(0.047, 0.05, 0.075, 1, 0.1, 0.12, 0.2, 1)
+
+[sub_resource type="GradientTexture2D" id="GTex_bg"]
+gradient = SubResource("Gradient_bg")
+width = 4
+height = 256
+fill_from = Vector2(0, 0)
+fill_to = Vector2(0, 1)
+
+[sub_resource type="Gradient" id="Gradient_vig"]
+offsets = PackedFloat32Array(0, 0.55, 1)
+colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.88)
+
+[sub_resource type="GradientTexture2D" id="GTex_vig"]
+gradient = SubResource("Gradient_vig")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_dot"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GTex_dot"]
+gradient = SubResource("Gradient_dot")
+width = 16
+height = 16
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_fade"]
+offsets = PackedFloat32Array(0, 0.2, 0.8, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0.75, 1, 1, 1, 0.75, 1, 1, 1, 0)
+
+[node name="TitleScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_title")
+
+[node name="Backdrop" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GTex_bg")
+expand_mode = 1
+
+[node name="BackdropHolder" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Hero" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_hero")
+
+[node name="Embers" type="CPUParticles2D" parent="."]
+amount = 22
+lifetime = 11.0
+preprocess = 11.0
+texture = SubResource("GTex_dot")
+emission_shape = 3
+emission_rect_extents = Vector2(400, 4)
+direction = Vector2(0, -1)
+spread = 22.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 25.0
+initial_velocity_max = 60.0
+scale_amount_min = 0.25
+scale_amount_max = 0.6
+color = Color(1, 0.55, 0.2, 0.9)
+color_ramp = SubResource("Gradient_fade")
+
+[node name="Motes" type="CPUParticles2D" parent="."]
+amount = 55
+lifetime = 12.0
+preprocess = 12.0
+texture = SubResource("GTex_dot")
+emission_shape = 3
+emission_rect_extents = Vector2(576, 4)
+direction = Vector2(0, -1)
+spread = 30.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 15.0
+initial_velocity_max = 45.0
+scale_amount_min = 0.2
+scale_amount_max = 0.55
+color = Color(1, 0.88, 0.65, 0.8)
+color_ramp = SubResource("Gradient_fade")
+
+[node name="Vignette" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GTex_vig")
+expand_mode = 1
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 96
+theme_override_constants/margin_top = 56
+theme_override_constants/margin_right = 56
+theme_override_constants/margin_bottom = 56
+
+[node name="Column" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="TitleRow" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Subtitle" type="Label" parent="Margin/Column"]
+layout_mode = 2
+text = "A TWO-PLAYER DUNGEON CRAWLER"
+
+[node name="Divider" type="Control" parent="Margin/Column"]
+custom_minimum_size = Vector2(420, 16)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("3_div")
+
+[node name="Spacer" type="Control" parent="Margin/Column"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Menu" type="VBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="PlayButton" type="Button" parent="Margin/Column/Menu"]
+layout_mode = 2
+text = "Play"
+
+[node name="HowButton" type="Button" parent="Margin/Column/Menu"]
+layout_mode = 2
+text = "How to Play"
+
+[node name="ControllerButton" type="Button" parent="Margin/Column/Menu"]
+layout_mode = 2
+text = "Controller Setup"
+
+[node name="SettingsButton" type="Button" parent="Margin/Column/Menu"]
+layout_mode = 2
+text = "Settings"
+
+[node name="CreditsButton" type="Button" parent="Margin/Column/Menu"]
+layout_mode = 2
+text = "Credits"
+
+[node name="QuitButton" type="Button" parent="Margin/Column/Menu"]
+layout_mode = 2
+text = "Quit"
+
+[node name="Footer" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -36.0
+offset_right = 400.0
+offset_bottom = -12.0
+grow_vertical = 0
+mouse_filter = 2
+text = "LOCAL CO-OP  •  2 PLAYERS"
+
+[node name="Hint" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -520.0
+offset_top = -36.0
+offset_right = -24.0
+offset_bottom = -12.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+horizontal_alignment = 2
+text = "↑ ↓  Navigate      Enter  Select      Esc  Back"
+
+[node name="Toast" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 18.0
+offset_bottom = 18.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="Margin" type="MarginContainer" parent="Toast"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Toast/Margin"]
+layout_mode = 2
+text = "MESSAGE"
+horizontal_alignment = 1
+
+[node name="Overlay" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="Overlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="InfoPanel" type="PanelContainer" parent="Overlay"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -190.0
+offset_right = 290.0
+offset_bottom = 190.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Overlay/InfoPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="Overlay/InfoPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="Label" parent="Overlay/InfoPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.48, 0.23, 1)
+theme_override_font_sizes/font_size = 26
+text = "INFO"
+
+[node name="Body" type="RichTextLabel" parent="Overlay/InfoPanel/Margin/VBox"]
+custom_minimum_size = Vector2(520, 240)
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+
+[node name="Back" type="Button" parent="Overlay/InfoPanel/Margin/VBox"]
+custom_minimum_size = Vector2(150, 42)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Back"
+
+[node name="ControllersPanel" type="PanelContainer" parent="Overlay"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -190.0
+offset_right = 290.0
+offset_bottom = 190.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Overlay/ControllersPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="Overlay/ControllersPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="Label" parent="Overlay/ControllersPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.48, 0.23, 1)
+theme_override_font_sizes/font_size = 26
+text = "CONTROLLER SETUP"
+
+[node name="Summary" type="Label" parent="Overlay/ControllersPanel/Margin/VBox"]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+
+[node name="PlayerOne" type="Label" parent="Overlay/ControllersPanel/Margin/VBox"]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+
+[node name="PlayerTwo" type="Label" parent="Overlay/ControllersPanel/Margin/VBox"]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+
+[node name="Note" type="Label" parent="Overlay/ControllersPanel/Margin/VBox"]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.63, 0.68, 1)
+autowrap_mode = 3
+text = "Custom Arduino controller detection and calibration will appear here once the controller manager is connected."
+
+[node name="Back" type="Button" parent="Overlay/ControllersPanel/Margin/VBox"]
+custom_minimum_size = Vector2(150, 42)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Back"
+
+[node name="SettingsPanel" type="PanelContainer" parent="Overlay"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -190.0
+offset_right = 290.0
+offset_bottom = 190.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Overlay/SettingsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="Overlay/SettingsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="Label" parent="Overlay/SettingsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.48, 0.23, 1)
+theme_override_font_sizes/font_size = 26
+text = "SETTINGS"
+
+[node name="Rows" type="VBoxContainer" parent="Overlay/SettingsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Note" type="Label" parent="Overlay/SettingsPanel/Margin/VBox"]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.63, 0.68, 1)
+autowrap_mode = 3
+text = "Mouse and camera sensitivity will appear here once the player scripts expose them."
+
+[node name="Back" type="Button" parent="Overlay/SettingsPanel/Margin/VBox"]
+custom_minimum_size = Vector2(150, 42)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Back"
+
+[node name="Fade" type="ColorRect" parent="."]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
