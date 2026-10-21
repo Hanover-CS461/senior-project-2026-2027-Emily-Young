@@ -1,2 +1,6 @@
 docs/_site
 docs/tmp
+
+# Editor and Windows temp files
+*.TMP
+**/~*.dll
