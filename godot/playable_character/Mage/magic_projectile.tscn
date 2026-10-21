@@ -1,6 +1,9 @@
 [gd_scene format=3 uid="uid://cd8p13blmmgll"]
 
 [ext_resource type="Script" uid="uid://fhi6bn5ny2lr" path="res://playable_character/Mage/magic_projectile.gd" id="1_vqi8e"]
+[ext_resource type="PackedScene" uid="uid://lvhexs6tlfim" path="res://playable_character/Mage/Magic_Fireball.glb" id="2_r7ird"]
+[ext_resource type="PackedScene" uid="uid://dgkoseofl4wjt" path="res://playable_character/Mage/Magic_Heal.glb" id="3_x0cto"]
+[ext_resource type="PackedScene" uid="uid://qe7ipyk7f6jo" path="res://playable_character/Mage/Magic_Ice.glb" id="4_blyg3"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7anak"]
 albedo_color = Color(0.28252572, 0.8164844, 0, 1)
@@ -16,6 +19,9 @@ radius = 0.21244554
 material_override = SubResource("StandardMaterial3D_7anak")
 mesh = SubResource("SphereMesh_d87lq")
 script = ExtResource("1_vqi8e")
+magic_fireball = ExtResource("2_r7ird")
+magic_heal = ExtResource("3_x0cto")
+magic_ice = ExtResource("4_blyg3")
 
 [node name="Area3D" type="Area3D" parent="." unique_id=986715088]
 

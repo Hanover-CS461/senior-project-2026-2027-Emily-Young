@@ -29,7 +29,7 @@ var selected_spell = 0
 var spells = [
 	"Fireball",
 	"Ice",
-	"Lightning"
+	"Heal"
 ]
 
 
