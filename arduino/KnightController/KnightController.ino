@@ -14,6 +14,7 @@ const int dodgePin = 7;
 int lastJumpState = HIGH;
 int lastInteractState = HIGH;
 int lastDodgeState = HIGH;
+int lastAttackState = HIGH;
 
 
 void setup() {
@@ -30,6 +31,7 @@ void setup() {
   lastJumpState = digitalRead(jumpPin);
   lastInteractState = digitalRead(interactPin);
   lastDodgeState = digitalRead(dodgePin);
+  lastAttackState = digitalRead(attackPin);
 }
 
 
@@ -47,12 +49,11 @@ void loop() {
 
 
   // ==========================================
-  // READ BUTTONS
+  // READ HOLD BUTTONS
   // ==========================================
 
   bool sprint = digitalRead(sprintPin) == LOW;
   bool shield = digitalRead(shieldPin) == LOW;
-  bool attack = digitalRead(attackPin) == LOW;
 
 
   // ==========================================
@@ -107,6 +108,23 @@ void loop() {
 
 
   // ==========================================
+  // ATTACK BUTTON
+  // ==========================================
+
+  int currentAttackState = digitalRead(attackPin);
+
+  if (
+    currentAttackState == LOW &&
+    lastAttackState == HIGH
+  ) {
+
+    Serial.println("ATTACK:1");
+  }
+
+  lastAttackState = currentAttackState;
+
+
+  // ==========================================
   // SEND CONTROLLER VALUES
   // ==========================================
 
@@ -124,10 +142,7 @@ void loop() {
   Serial.print(sprint ? 1 : 0);
 
   Serial.print("|SHIELD:");
-  Serial.print(shield ? 1 : 0);
-
-  Serial.print("|ATTACK:");
-  Serial.println(attack ? 1 : 0);
+  Serial.println(shield ? 1 : 0);
 
 
   delay(20);

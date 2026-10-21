@@ -1,6 +1,8 @@
 extends Node3D
 
+
 @export var dungeon_scene: PackedScene
+
 
 var player_in_range = false
 var interaction_used = false
@@ -19,55 +21,48 @@ func _ready():
 
 func _process(_delta):
 
-	if player_in_range and not interaction_used:
-
-		var interact_requested = false
-
-
-		# ==========================================
-		# KEYBOARD E
-		# ==========================================
-
-		if Input.is_key_pressed(KEY_E):
-
-			interact_requested = true
+	if interaction_used:
+		return
 
 
-		# ==========================================
-		# MAGE CONTROLLER
-		# ==========================================
+	# ==========================================
+	# INTERACTION
+	# ==========================================
 
-		if ArduinoMage.interact_pressed:
-
-			interact_requested = true
-
-			ArduinoMage.interact_pressed = false
+	var interact_requested = false
 
 
-		# ==========================================
-		# KNIGHT CONTROLLER
-		# ==========================================
+	# Keyboard E
+	if Input.is_key_pressed(KEY_E):
 
-		if ArduinoKnight.interact_pressed:
-
-			interact_requested = true
-
-			ArduinoKnight.interact_pressed = false
+		interact_requested = true
 
 
-		# ==========================================
-		# INTERACT
-		# ==========================================
+	# Mage controller
+	if ArduinoMage.interact_pressed:
 
-		if interact_requested:
+		interact_requested = true
+		ArduinoMage.interact_pressed = false
 
-			interaction_used = true
 
-			print(
-				"Dungeon Keeper interacted!"
-			)
+	# Knight controller
+	if ArduinoKnight.interact_pressed:
 
-			enter_dungeon()
+		interact_requested = true
+		ArduinoKnight.interact_pressed = false
+
+
+	# ==========================================
+	# ONLY INTERACT IF PLAYER IS IN THE AREA
+	# ==========================================
+
+	if interact_requested and player_in_range:
+
+		interaction_used = true
+
+		print("Dungeon Keeper interacted!")
+
+		enter_dungeon()
 
 
 func _on_body_entered(body):
@@ -108,6 +103,7 @@ func enter_dungeon():
 	print(
 		"Entering Dungeon 1!"
 	)
+
 
 	get_tree().change_scene_to_packed(
 		dungeon_scene

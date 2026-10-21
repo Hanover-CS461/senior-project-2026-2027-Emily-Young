@@ -1,220 +1,114 @@
-extends Node
 
+extends Node
 
 var manager
 
+var move_x: int = 517
+var move_y: int = 518
 
-var move_x = 517
-var move_y = 518
+var look_x: int = 517
+var look_y: int = 512
 
-var look_x = 517
-var look_y = 512
+var sprint: bool = false
+var shield: bool = false
 
+var attack_pressed: bool = false
+var jump_pressed: bool = false
+var interact_pressed: bool = false
+var dodge_pressed: bool = false
 
-var sprint = false
-var shield = false
-
-
-var attack_pressed = false
-var jump_pressed = false
-var interact_pressed = false
-var dodge_pressed = false
+var interaction_count: int = 0
 
 
-func _ready():
-
+func _ready() -> void:
 	manager = GdSerialManager.new()
+	manager.data_received.connect(_on_data_received)
 
-	manager.data_received.connect(
-		_on_data_received
-	)
-
-	if manager.open(
-		"COM6",
-		9600,
-		1000,
-		GdSerialManager.MODE_LINE_BUFFERED
-	):
-
+	if manager.open("COM6", 9600, 1000, GdSerialManager.MODE_LINE_BUFFERED):
 		print("Knight Arduino connected!")
-
 	else:
-
 		print("Could not connect to Knight Arduino!")
 
 
-func _process(_delta):
+func _process(_delta: float) -> void:
+	if manager != null:
+		manager.poll_events()
 
-	manager.poll_events()
 
-
-func _on_data_received(
-	port: String,
-	data: PackedByteArray
-):
-
-	var text = data.get_string_from_utf8().strip_edges()
-
-	var sections = text.split("|")
-
+func _on_data_received(_port: String, data: PackedByteArray) -> void:
+	var message: String = data.get_string_from_utf8().strip_edges()
+	var sections: PackedStringArray = message.split("|")
 
 	for section in sections:
+		var part: String = section.strip_edges()
 
-		section = section.strip_edges()
-
-
-		# ==========================================
-		# JUMP
-		# ==========================================
-
-		if section == "JUMP":
-
+		if part == "JUMP":
 			jump_pressed = true
 
-
-		# ==========================================
-		# INTERACTION
-		# ==========================================
-
-		elif section == "INTERACT":
-
+		elif (
+			part == "INTERACT"
+			or part == "INTERACT:1"
+			or part == "BUTTON:INTERACT"
+		):
+			interaction_count += 1
 			interact_pressed = true
 
-
-		# ==========================================
-		# DODGE
-		# ==========================================
-
-		elif section == "DODGE":
-
+		elif part == "DODGE":
 			dodge_pressed = true
 
+		elif part.begins_with("MOVE:"):
+			var move_values: PackedStringArray = part.trim_prefix("MOVE:").split(",")
 
-		# ==========================================
-		# MOVEMENT
-		# ==========================================
+			if move_values.size() == 2:
+				move_x = int(move_values[0])
+				move_y = int(move_values[1])
 
-		elif section.begins_with("MOVE:"):
+		elif part.begins_with("LOOK:"):
+			var look_values: PackedStringArray = part.trim_prefix("LOOK:").split(",")
 
-			var values = (
-				section
-				.trim_prefix("MOVE:")
-				.split(",")
-			)
+			if look_values.size() == 2:
+				look_x = int(look_values[0])
+				look_y = int(look_values[1])
 
-			if values.size() == 2:
+		elif part.begins_with("SPRINT:"):
+			sprint = part.trim_prefix("SPRINT:") == "1"
 
-				move_x = int(values[0])
-				move_y = int(values[1])
+		elif part.begins_with("SHIELD:"):
+			shield = part.trim_prefix("SHIELD:") == "1"
 
-
-		# ==========================================
-		# CAMERA
-		# ==========================================
-
-		elif section.begins_with("LOOK:"):
-
-			var values = (
-				section
-				.trim_prefix("LOOK:")
-				.split(",")
-			)
-
-			if values.size() == 2:
-
-				look_x = int(values[0])
-				look_y = int(values[1])
-
-
-		# ==========================================
-		# SPRINT
-		# ==========================================
-
-		elif section.begins_with("SPRINT:"):
-
-			var value = (
-				section
-				.trim_prefix("SPRINT:")
-			)
-
-			sprint = value == "1"
-
-
-		# ==========================================
-		# SHIELD
-		# ==========================================
-
-		elif section.begins_with("SHIELD:"):
-
-			var value = (
-				section
-				.trim_prefix("SHIELD:")
-			)
-
-			shield = value == "1"
-
-
-		# ==========================================
-		# ATTACK
-		# ==========================================
-
-		elif section.begins_with("ATTACK:"):
-
-			var value = (
-				section
-				.trim_prefix("ATTACK:")
-			)
-
-			if value == "1":
-
+		elif part.begins_with("ATTACK:"):
+			if part.trim_prefix("ATTACK:") == "1":
 				attack_pressed = true
 
 
-func get_movement():
+func consume_interaction() -> bool:
+	if interaction_count > 0:
+		interaction_count -= 1
+		interact_pressed = interaction_count > 0
+		return true
 
-	var x = (
-		move_x - 517
-	) / 506.0
+	return false
 
-	var y = (
-		move_y - 518
-	) / 505.0
 
-	var movement = Vector2(
-		x,
-		y
-	)
+func get_movement() -> Vector2:
+	var x: float = float(move_x - 517) / 506.0
+	var y: float = float(move_y - 518) / 505.0
+
+	var movement: Vector2 = Vector2(x, y)
 
 	if movement.length() < 0.15:
-
 		return Vector2.ZERO
 
-	return movement.normalized() * min(
-		movement.length(),
-		1.0
-	)
+	return movement.normalized() * minf(movement.length(), 1.0)
 
 
-func get_look():
+func get_look() -> Vector2:
+	var x: float = float(look_x - 517) / 506.0
+	var y: float = float(look_y - 512) / 511.0
 
-	var x = (
-		look_x - 517
-	) / 506.0
-
-	var y = (
-		look_y - 512
-	) / 511.0
-
-	var look = Vector2(
-		x,
-		y
-	)
+	var look: Vector2 = Vector2(x, y)
 
 	if look.length() < 0.15:
-
 		return Vector2.ZERO
 
-	return look.normalized() * min(
-		look.length(),
-		1.0
-	)
+	return look.normalized() * minf(look.length(), 1.0)
