@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://ywwhqy5hud5s"]
+
+[ext_resource type="PackedScene" uid="uid://08b8ri7jhthk" path="res://Virelune_AncientSeal_Room.glb" id="1_d0qg8"]
+
+[node name="Virelune_AncientSeal_Room2" unique_id=1952893608 instance=ExtResource("1_d0qg8")]
+
+[node name="Conduit_Ice" parent="Virelune_AncientSeal_Room/Floor_Conduits" parent_id_path=PackedInt32Array(112156290) index="1" unique_id=282352176]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 2.5606024, 0, 0, 3.5640016)
+
+[node name="Frozen_Channel" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="0" unique_id=601273941]
+transform = Transform3D(1, 0, 0, 0, 1.7769988, 0, 0, 0, 2.2972918, 0, 0.054682523, -0.97956896)
+
+[node name="Water_Surface" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="1" unique_id=563286455]
+transform = Transform3D(1, 0, 0, 0, 1.7769988, 0, 0, 0, 2.6425345, 0, -0.15855733, 0)
+
+[node name="Ice_Surface" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="2" unique_id=1134291797]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 2.2972918, 0, 0, -0.97956896)
+
+[node name="Ice_Pedestal" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="4" unique_id=286079083]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -13.716194)
+
+[node name="Ice_Pedestal_Runes" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="5" unique_id=2049783754]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -13.716194)
+
+[node name="Ice_Crystal" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="6" unique_id=768355560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, -13.716194)
+
+[node name="Ice_Crystal_Small_1" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="7" unique_id=143943621]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, -13.716194)
+
+[node name="Ice_Crystal_Small_2" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="8" unique_id=1295417408]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, -13.716194)
+
+[node name="Ice_Crystal_Small_3" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="9" unique_id=1954153842]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, -13.716194)
+
+[node name="Ice_Formations_Frozen" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="10" unique_id=874717465]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -13.716194)
+
+[node name="Ice_Icicles" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="11" unique_id=345940961]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.64, -13.716194)
+
+[node name="Channel_Inlet" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="12" unique_id=974769519]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -12.666195)
+
+[node name="Ice_Lever_Handle" parent="Virelune_AncientSeal_Room/Ice_Station" parent_id_path=PackedInt32Array(957598685) index="15" unique_id=646289038]
+transform = Transform3D(0.23085624, 0.9729879, 0, -0.9729879, 0.23085624, 0, 0, 0, 1, 2.9499998, 0.62, 0.81999993)

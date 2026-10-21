@@ -17,10 +17,16 @@
 [ext_resource type="PackedScene" uid="uid://dquvobki8wtu2" path="res://models/dungeon_assets/GLB format/room-wide.glb" id="17_52lnc"]
 [ext_resource type="PackedScene" uid="uid://blwh4hg1i8ibt" path="res://models/dungeon_assets/GLB format/template-wall.glb" id="17_h03xv"]
 [ext_resource type="Script" uid="uid://0uu611vsbxfb" path="res://models/dungeon_assets/GLB format/gate_metal_bars.gd" id="18_52lnc"]
+[ext_resource type="Script" uid="uid://l6ipaa8lyqij" path="res://puzzle_room.gd" id="19_bphw0"]
+[ext_resource type="Script" uid="uid://b04bt7bldoqby" path="res://PuzzleController.gd" id="19_n7bgw"]
 [ext_resource type="Script" uid="uid://clasa04044myp" path="res://models/dungeon_assets/GLB format/gate_metal_bars3.gd" id="19_vvg5t"]
-[ext_resource type="PackedScene" uid="uid://df0lp1cdo5q1y" path="res://models/dungeon_assets/GLB format/room-large-variation.glb" id="20_rtqja"]
-[ext_resource type="PackedScene" uid="uid://orsnv6mwsqmy" path="res://models/dungeon_assets/GLB format/corridor-wide-end.glb" id="21_n7bgw"]
+[ext_resource type="Script" uid="uid://bmuwkc0g5f2eo" path="res://screens/fire_station.gd" id="20_q7r2e"]
+[ext_resource type="PackedScene" uid="uid://ywwhqy5hud5s" path="res://PuzzleRoom1.tscn" id="20_rtqja"]
+[ext_resource type="Script" uid="uid://g5puxqfbpeyh" path="res://screens/fire_spell_target.gd" id="21_vgq0e"]
+[ext_resource type="Script" uid="uid://cqxuexq8sftw1" path="res://screens/fire_gear_interaction.gd" id="22_3y4oo"]
 [ext_resource type="PackedScene" uid="uid://cw6crok5wdwrd" path="res://models/dungeon_assets/GLB format/stairs-wide.glb" id="22_q7r2e"]
+[ext_resource type="PackedScene" uid="uid://fgafx7pk55cb" path="res://models/dungeon_assets/GLB format/template-floor-detail-a.glb" id="23_og0mk"]
+[ext_resource type="Script" uid="uid://477xyib5clev" path="res://screens/ice_shrine.gd" id="24_ae3xc"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7dm0k"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -43,6 +49,21 @@ size = Vector3(3.3581543, 1, 2.5585938)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_7anak"]
 size = Vector3(5.083374, 3.8041992, 3.8530273)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ax2yb"]
+size = Vector3(3.4748535, 3.7371826, 3.4106445)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_og0mk"]
+size = Vector3(2.8976707, 4.0936584, 3.5252686)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cdb42"]
+size = Vector3(2.3822632, 4.300232, 3.2162628)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_8pjh4"]
+size = Vector3(2.7175598, 3.6518555, 2.4304218)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_uo5mk"]
+size = Vector3(2.373291, 2.659668, 2.5302734)
 
 [node name="Main" type="Node3D" unique_id=1941153417]
 script = ExtResource("1_gm3jy")
@@ -208,27 +229,72 @@ script = ExtResource("18_52lnc")
 transform = Transform3D(1.0000001, 0, 0, 0, 1.0000001, 0, 0, 0, 1.0000001, -0.20684767, 1.4020998, 1.4265137)
 shape = SubResource("BoxShape3D_7anak")
 
+[node name="PuzzleRoom" parent="Dungeon1Map" unique_id=1429704486 instance=ExtResource("20_rtqja")]
+transform = Transform3D(-1.8012797e-08, 0, -0.41208476, 0, 0.41208476, 0, 0.41208476, 0, -1.8012797e-08, 12.705009, 0, 3.1432886)
+script = ExtResource("19_bphw0")
+puzzle_controller_path = NodePath("PuzzleController")
+
+[node name="PuzzleController" type="Node3D" parent="Dungeon1Map/PuzzleRoom" unique_id=1055054332]
+script = ExtResource("19_n7bgw")
+
+[node name="Interactables" type="Node3D" parent="Dungeon1Map/PuzzleRoom" unique_id=1382623615]
+
+[node name="FireInteraction" type="Area3D" parent="Dungeon1Map/PuzzleRoom/Interactables" unique_id=1220707230]
+script = ExtResource("20_q7r2e")
+
+[node name="FireSpell" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/Interactables/FireInteraction" unique_id=1598484198]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.672308, 1.801765, 1.9286709)
+shape = SubResource("BoxShape3D_ax2yb")
+
+[node name="FireSpellTarget" type="Area3D" parent="Dungeon1Map/PuzzleRoom/Interactables" unique_id=1085401543]
+script = ExtResource("21_vgq0e")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/Interactables/FireSpellTarget" unique_id=95189374]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5939474, 2.061113, 1.9192657)
+shape = SubResource("BoxShape3D_og0mk")
+
+[node name="FireGearInteraction" type="Area3D" parent="Dungeon1Map/PuzzleRoom/Interactables" unique_id=481040114]
+script = ExtResource("22_3y4oo")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/Interactables/FireGearInteraction" unique_id=1338511862]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.133855, 1.7778107, 1.8813)
+shape = SubResource("BoxShape3D_cdb42")
+
+[node name="KnightStandPosition" type="Marker3D" parent="Dungeon1Map/PuzzleRoom/Interactables/FireGearInteraction" unique_id=991515896]
+transform = Transform3D(2.4229228, 0, -0.13509902, 0, 2.4266858, 0, 0.13509902, 0, 2.4229228, -6.318366, 2.4508824, 0.976202)
+
+[node name="IceShrine" type="Node3D" parent="Dungeon1Map/PuzzleRoom" unique_id=1027601280]
+
+[node name="WaterInletInteraction" type="Area3D" parent="Dungeon1Map/PuzzleRoom/IceShrine" unique_id=1182508542]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.119269, 0, -10.748262)
+script = ExtResource("24_ae3xc")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/IceShrine/WaterInletInteraction" unique_id=833335277]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6197624, 1.3259277, -1.400322)
+shape = SubResource("BoxShape3D_8pjh4")
+
+[node name="LeverInteraction" type="Area3D" parent="Dungeon1Map/PuzzleRoom/IceShrine" unique_id=1611003824]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.619758, 0, 2.6261425)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/IceShrine/LeverInteraction" unique_id=1402375722]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11291695, 0.82983404, -0.7651329)
+shape = SubResource("BoxShape3D_uo5mk")
+
 [node name="gate-metal-bars3" parent="." unique_id=1152951560 instance=ExtResource("16_h03xv")]
-transform = Transform3D(-2.928663e-08, 0, 0.67, 0, 0.67, 0, -0.67, 0, -2.928663e-08, 4.0504503, 0.07711798, 3.1963842)
+transform = Transform3D(-2.928663e-08, 0, 0.67, 0, 0.67, 0, -0.67, 0, -2.928663e-08, 4.0032744, 1.9514048, 3.1963842)
 script = ExtResource("19_vvg5t")
-
-[node name="room-large-variation2" parent="." unique_id=2007988446 instance=ExtResource("20_rtqja")]
-transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 9.338054, 0.1, 3.1137419)
-
-[node name="corridor-wide-end2" parent="." unique_id=1743499266 instance=ExtResource("21_n7bgw")]
-transform = Transform3D(-2.1855694e-08, 0, -0.5, 0, 0.5, 0, 0.5, 0, -2.1855694e-08, 9.340715, 0.1, -7.8672805)
-
-[node name="corridor-transition2" parent="." unique_id=716288562 instance=ExtResource("15_dfgm3")]
-transform = Transform3D(-2.1855694e-08, 0, 0.5, 0, 0.5, 0, -0.5, 0, -2.1855694e-08, 9.344062, 0.1, -4.877025)
-
-[node name="corridor-wide-end4" parent="." unique_id=78951425 instance=ExtResource("21_n7bgw")]
-transform = Transform3D(6.556708e-08, 0, 0.5, 0, 0.5, 0, -0.5, 0, 6.556708e-08, 9.310551, 0.1, 13.962685)
-
-[node name="corridor-transition4" parent="." unique_id=1748243417 instance=ExtResource("15_dfgm3")]
-transform = Transform3D(-2.1855694e-08, 0, -0.5, 0, 0.5, 0, 0.5, 0, -2.1855694e-08, 9.307204, 0.1, 10.972429)
-
-[node name="room-small2" parent="." unique_id=1354127485 instance=ExtResource("12_88ihb")]
-transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 17.320627, 0.1, 3.128334)
 
 [node name="stairs-wide2" parent="." unique_id=1230830797 instance=ExtResource("22_q7r2e")]
 transform = Transform3D(-2.1855694e-08, 0, 0.5, 0, 0.5, 0, -0.5, 0, -2.1855694e-08, -4.202, -1.9249129, -8.786)
+
+[node name="template-floor-detail-a2" parent="." unique_id=1803396509 instance=ExtResource("23_og0mk")]
+transform = Transform3D(0.31732148, 0, 0, 0, 0.31732148, 0, 0, 0, 0.31732148, 4.982981, 0, 3.8178873)
+
+[node name="template-floor-detail-a3" parent="." unique_id=1412344250 instance=ExtResource("23_og0mk")]
+transform = Transform3D(0.31732148, 0, 0, 0, 0.31732148, 0, 0, 0, 0.31732148, 4.982981, 0, 2.552417)
+
+[node name="template-floor-detail-a4" parent="." unique_id=911916191 instance=ExtResource("23_og0mk")]
+transform = Transform3D(-0.31731915, 0, -0.0012164314, 0, 0.31732148, 0, 0.0012164314, 0, -0.31731915, 6.244556, 0, 2.5524216)
+
+[node name="template-floor-detail-a5" parent="." unique_id=627646577 instance=ExtResource("23_og0mk")]
+transform = Transform3D(-0.31731915, 0, -0.0012164314, 0, 0.31732148, 0, 0.0012164314, 0, -0.31731915, 6.2494073, 0, 3.8178825)
