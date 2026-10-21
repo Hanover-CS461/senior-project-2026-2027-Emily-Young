@@ -1,0 +1,276 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://pause_menu/pause_menu.gd" id="1_pause"]
+
+[node name="PauseMenu" type="CanvasLayer"]
+layer = 20
+process_mode = 3
+script = ExtResource("1_pause")
+
+[node name="Root" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.025, 0.04, 0.68)
+
+[node name="MainPanel" type="PanelContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -190.0
+offset_top = -190.0
+offset_right = 190.0
+offset_bottom = 190.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Root/MainPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="Root/MainPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Root/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.79, 0.54, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.04, 0.03, 0.95)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 40
+text = "PAUSED"
+horizontal_alignment = 1
+
+[node name="Divider" type="HBoxContainer" parent="Root/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="LineL" type="ColorRect" parent="Root/MainPanel/Margin/VBox/Divider"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+color = Color(0.69, 0.48, 0.23, 0.8)
+
+[node name="Diamond" type="Label" parent="Root/MainPanel/Margin/VBox/Divider"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.48, 0.23, 1)
+theme_override_font_sizes/font_size = 14
+text = "◆"
+
+[node name="LineR" type="ColorRect" parent="Root/MainPanel/Margin/VBox/Divider"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+color = Color(0.69, 0.48, 0.23, 0.8)
+
+[node name="Spacer" type="Control" parent="Root/MainPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="ResumeButton" type="Button" parent="Root/MainPanel/Margin/VBox"]
+layout_mode = 2
+text = "Resume"
+
+[node name="SettingsButton" type="Button" parent="Root/MainPanel/Margin/VBox"]
+layout_mode = 2
+text = "Settings"
+
+[node name="ControlsButton" type="Button" parent="Root/MainPanel/Margin/VBox"]
+layout_mode = 2
+text = "Controls"
+
+[node name="MenuButton" type="Button" parent="Root/MainPanel/Margin/VBox"]
+layout_mode = 2
+text = "Return to Main Menu"
+
+[node name="Hint" type="Label" parent="Root/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.63, 0.68, 1)
+theme_override_font_sizes/font_size = 12
+text = "Esc / Start  -  Resume"
+horizontal_alignment = 1
+
+[node name="SettingsPanel" type="PanelContainer" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -170.0
+offset_right = 290.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Root/SettingsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="Root/SettingsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="Label" parent="Root/SettingsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.48, 0.23, 1)
+theme_override_font_sizes/font_size = 26
+text = "SETTINGS"
+
+[node name="Rows" type="VBoxContainer" parent="Root/SettingsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Note" type="Label" parent="Root/SettingsPanel/Margin/VBox"]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.63, 0.68, 1)
+autowrap_mode = 3
+text = "Mouse and camera sensitivity will appear here once the player scripts expose them."
+
+[node name="Back" type="Button" parent="Root/SettingsPanel/Margin/VBox"]
+custom_minimum_size = Vector2(150, 42)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Back"
+
+[node name="ControlsPanel" type="PanelContainer" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -170.0
+offset_right = 290.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Root/ControlsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="Root/ControlsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="Label" parent="Root/ControlsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.48, 0.23, 1)
+theme_override_font_sizes/font_size = 26
+text = "CONTROLS"
+
+[node name="Body" type="RichTextLabel" parent="Root/ControlsPanel/Margin/VBox"]
+custom_minimum_size = Vector2(520, 200)
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+
+[node name="Back" type="Button" parent="Root/ControlsPanel/Margin/VBox"]
+custom_minimum_size = Vector2(150, 42)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Back"
+
+[node name="ConfirmPanel" type="PanelContainer" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -170.0
+offset_right = 290.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Root/ConfirmPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="Root/ConfirmPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Heading" type="Label" parent="Root/ConfirmPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.48, 0.23, 1)
+theme_override_font_sizes/font_size = 26
+text = "RETURN TO MAIN MENU?"
+
+[node name="Message" type="Label" parent="Root/ConfirmPanel/Margin/VBox"]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+autowrap_mode = 3
+text = "Return to the main menu? Any progress in this run will be lost."
+
+[node name="Buttons" type="HBoxContainer" parent="Root/ConfirmPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Cancel" type="Button" parent="Root/ConfirmPanel/Margin/VBox/Buttons"]
+custom_minimum_size = Vector2(170, 44)
+layout_mode = 2
+text = "Cancel"
+
+[node name="Confirm" type="Button" parent="Root/ConfirmPanel/Margin/VBox/Buttons"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+text = "Return to Menu"
+
+[node name="Toast" type="PanelContainer" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 18.0
+offset_bottom = 18.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="Margin" type="MarginContainer" parent="Root/Toast"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Root/Toast/Margin"]
+layout_mode = 2
+text = "MESSAGE"
+horizontal_alignment = 1
