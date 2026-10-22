@@ -21,10 +21,18 @@ var interaction_count: int = 0
 
 
 func _ready() -> void:
+	# Continue receiving Arduino data while the game is paused.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
 	manager = GdSerialManager.new()
 	manager.data_received.connect(_on_data_received)
 
-	if manager.open("COM6", 9600, 1000, GdSerialManager.MODE_LINE_BUFFERED):
+	if manager.open(
+		"COM6",
+		9600,
+		1000,
+		GdSerialManager.MODE_LINE_BUFFERED
+	):
 		print("Knight Arduino connected!")
 	else:
 		print("Could not connect to Knight Arduino!")
@@ -57,14 +65,18 @@ func _on_data_received(_port: String, data: PackedByteArray) -> void:
 			dodge_pressed = true
 
 		elif part.begins_with("MOVE:"):
-			var move_values: PackedStringArray = part.trim_prefix("MOVE:").split(",")
+			var move_values: PackedStringArray = (
+				part.trim_prefix("MOVE:").split(",")
+			)
 
 			if move_values.size() == 2:
 				move_x = int(move_values[0])
 				move_y = int(move_values[1])
 
 		elif part.begins_with("LOOK:"):
-			var look_values: PackedStringArray = part.trim_prefix("LOOK:").split(",")
+			var look_values: PackedStringArray = (
+				part.trim_prefix("LOOK:").split(",")
+			)
 
 			if look_values.size() == 2:
 				look_x = int(look_values[0])
@@ -94,7 +106,7 @@ func get_movement() -> Vector2:
 	var x: float = float(move_x - 517) / 506.0
 	var y: float = float(move_y - 518) / 505.0
 
-	var movement: Vector2 = Vector2(x, y)
+	var movement := Vector2(x, y)
 
 	if movement.length() < 0.15:
 		return Vector2.ZERO
@@ -106,7 +118,7 @@ func get_look() -> Vector2:
 	var x: float = float(look_x - 517) / 506.0
 	var y: float = float(look_y - 512) / 511.0
 
-	var look: Vector2 = Vector2(x, y)
+	var look := Vector2(x, y)
 
 	if look.length() < 0.15:
 		return Vector2.ZERO

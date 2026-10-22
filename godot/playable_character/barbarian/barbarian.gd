@@ -1,110 +1,57 @@
-extends Node3D
 
+extends Node3D
 
 @export var dungeon_scene: PackedScene
 
-
-var player_in_range = false
-var interaction_used = false
-
-
-func _ready():
-
-	$InteractionArea.body_entered.connect(
-		_on_body_entered
-	)
-
-	$InteractionArea.body_exited.connect(
-		_on_body_exited
-	)
+var player_in_range: bool = false
+var interaction_used: bool = false
 
 
-func _process(_delta):
+func _ready() -> void:
+	$InteractionArea.body_entered.connect(_on_body_entered)
+	$InteractionArea.body_exited.connect(_on_body_exited)
 
-	if interaction_used:
+
+func _process(_delta: float) -> void:
+	if interaction_used or not player_in_range:
 		return
 
+	# Either player can interact through PlayerInput.
+	var mage_interact: bool = PlayerInput.consume_interaction(1)
+	var knight_interact: bool = PlayerInput.consume_interaction(2)
 
-	# ==========================================
-	# INTERACTION
-	# ==========================================
-
-	var interact_requested = false
-
-
-	# Keyboard E
-	if Input.is_key_pressed(KEY_E):
-
-		interact_requested = true
-
-
-	# Mage controller
-	if ArduinoMage.interact_pressed:
-
-		interact_requested = true
-		ArduinoMage.interact_pressed = false
-
-
-	# Knight controller
-	if ArduinoKnight.interact_pressed:
-
-		interact_requested = true
-		ArduinoKnight.interact_pressed = false
-
-
-	# ==========================================
-	# ONLY INTERACT IF PLAYER IS IN THE AREA
-	# ==========================================
-
-	if interact_requested and player_in_range:
-
+	if mage_interact or knight_interact:
 		interaction_used = true
-
 		print("Dungeon Keeper interacted!")
-
 		enter_dungeon()
 
 
-func _on_body_entered(body):
-
-	if (
-		body.is_in_group("player1")
-		or body.is_in_group("player2")
-	):
-
+func _on_body_entered(body: Node3D) -> void:
+	if body.is_in_group("player1") or body.is_in_group("player2"):
 		player_in_range = true
-
-		print(
-			"Press E or use your controller to enter the dungeon"
-		)
+		print("Press your interact key or use your controller to enter the dungeon.")
 
 
-func _on_body_exited(body):
-
-	if (
-		body.is_in_group("player1")
-		or body.is_in_group("player2")
-	):
-
-		player_in_range = false
+func _on_body_exited(body: Node3D) -> void:
+	if body.is_in_group("player1") or body.is_in_group("player2"):
+		# Only stop interaction when neither player remains nearby.
+		call_deferred("_update_player_range")
 
 
-func enter_dungeon():
+func _update_player_range() -> void:
+	player_in_range = false
 
+	for body in $InteractionArea.get_overlapping_bodies():
+		if body.is_in_group("player1") or body.is_in_group("player2"):
+			player_in_range = true
+			break
+
+
+func enter_dungeon() -> void:
 	if dungeon_scene == null:
-
-		print(
-			"No dungeon scene assigned!"
-		)
-
+		interaction_used = false
+		push_warning("No dungeon scene assigned!")
 		return
 
-
-	print(
-		"Entering Dungeon 1!"
-	)
-
-
-	get_tree().change_scene_to_packed(
-		dungeon_scene
-	)
+	print("Entering Dungeon 1!")
+	get_tree().change_scene_to_packed(dungeon_scene)

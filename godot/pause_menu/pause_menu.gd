@@ -13,10 +13,46 @@ signal pause_closed
 @export var sfx_bus_name: String = "SFX"
 
 @export_group("Controls panel")
-@export var player_one_controls: Dictionary = {}
-@export var player_two_controls: Dictionary = {}
+@export var player_one_controls: Dictionary = {
+	"Move Forward": "move_forward",
+	"Move Backward": "move_backward",
+	"Move Left": "move_left",
+	"Move Right": "move_right",
+	"Jump": "jump",
+	"Run": "run",
+	"Interact": "mage_interact",
+	"Cast Spell": "mage_cast_spell",
+	"Previous Spell": "mage_spell_previous",
+	"Next Spell": "mage_spell_next"
+}
 
-@export_multiline var controls_text: String = "[b]Controls[/b]\n\n[i]Controls will be listed here once the controllers are finalized.[/i]\n\nPause: Esc or gamepad Start."
+@export var player_two_controls: Dictionary = {
+	"Move Forward": "p2_forward",
+	"Move Backward": "p2_backward",
+	"Move Left": "p2_left",
+	"Move Right": "p2_right",
+	"Look Left": "p2_look_left",
+	"Look Right": "p2_look_right",
+	"Look Up": "p2_look_up",
+	"Look Down": "p2_look_down",
+	"Jump": "p2_jump",
+	"Run": "p2_run",
+	"Attack": "p2_attack",
+	"Shield": "p2_shield",
+	"Dodge": "p2_dodge",
+	"Interact": "p2_interact"
+}
+
+@export_multiline var controls_text: String = "[b]Controls[/b]\n\n[i]Keyboard and controller controls are being configured.[/i]\n\nPause: Esc or gamepad Start."
+
+@export_group("Analog Text Scrolling")
+@export var panel_scroll_speed: float = 350.0
+@export var panel_scroll_dead_zone: float = 0.2
+
+@export_group("Controller Menu Navigation")
+@export var menu_navigation_dead_zone: float = 0.6
+@export var menu_navigation_delay: float = 0.22
+@export var slider_adjust_speed: float = 0.8
 
 const SETTINGS_PATH: String = "user://virelune_settings.cfg"
 const FONT_PATH: String = "res://pause_menu/ui_font.ttf"
@@ -34,6 +70,8 @@ var _prev_mouse_mode: Input.MouseMode = Input.MOUSE_MODE_VISIBLE
 var _cfg: ConfigFile = ConfigFile.new()
 var _opener: Control = null
 var _toast_tween: Tween = null
+
+var _menu_nav_cooldown: float = 0.0
 
 @onready var _root: Control = $Root
 @onready var _main_panel: Control = $Root/MainPanel
@@ -80,7 +118,7 @@ func _ready() -> void:
 	_cancel_btn.pressed.connect(_back_to_main)
 	_confirm_btn.pressed.connect(_return_to_main_menu)
 
-	print("Virelune Pause Menu ready. Press Escape to pause.")
+	print("Virelune Pause Menu ready. Pause with Escape or gamepad Start.")
 
 
 # =========================================================
@@ -88,26 +126,35 @@ func _ready() -> void:
 # =========================================================
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		var key := event as InputEventKey
+	if not _is_pause_event(event):
+		return
 
-		if key.pressed and not key.echo and key.keycode == KEY_ESCAPE:
-			print("PAUSE MENU RECEIVED ESCAPE")
+	if not event.is_pressed() or event.is_echo():
+		return
 
-			if not _root.visible:
-				open()
-			elif _main_panel.visible:
-				close()
-			else:
-				_back_to_main()
+	if not _root.visible:
+		open()
+	elif _main_panel.visible:
+		close()
+	else:
+		_back_to_main()
 
-			get_viewport().set_input_as_handled()
+	get_viewport().set_input_as_handled()
 
 
 func _is_pause_event(event: InputEvent) -> bool:
-	# Always detect Escape, even if the pause action is configured incorrectly.
+	if (
+		pause_action != ""
+		and InputMap.has_action(pause_action)
+		and event.is_action_pressed(pause_action)
+		and not event.is_echo()
+		and PlayerInput.is_pause_just_pressed()
+	):
+		return true
+
 	if event is InputEventKey:
 		var key_event := event as InputEventKey
+
 		if (
 			key_event.pressed
 			and not key_event.echo
@@ -118,21 +165,159 @@ func _is_pause_event(event: InputEvent) -> bool:
 		):
 			return true
 
-	# Also allow a configured InputMap action.
-	if pause_action != "" and InputMap.has_action(pause_action):
-		if event.is_action_pressed(pause_action):
-			return true
-
-	# Allow gamepad Start.
 	if allow_gamepad_start and event is InputEventJoypadButton:
 		var button_event := event as InputEventJoypadButton
-		if (
-			button_event.pressed
-			and button_event.button_index == JOY_BUTTON_START
-		):
+
+		if button_event.pressed and button_event.button_index == JOY_BUTTON_START:
 			return true
 
 	return false
+
+
+# =========================================================
+# CONTROLLER NAVIGATION AND ANALOG SCROLLING
+# =========================================================
+
+func _process(delta: float) -> void:
+	if not _root.visible:
+		return
+
+	_menu_nav_cooldown = maxf(0.0, _menu_nav_cooldown - delta)
+
+	# Read both players' movement using the existing input manager.
+	var mage_move: Vector2 = PlayerInput.get_move(1)
+	var knight_move: Vector2 = PlayerInput.get_move(2)
+
+	var vertical: float = 0.0
+
+	if mage_move.y < -menu_navigation_dead_zone or knight_move.y < -menu_navigation_dead_zone:
+		vertical = -1.0
+	elif mage_move.y > menu_navigation_dead_zone or knight_move.y > menu_navigation_dead_zone:
+		vertical = 1.0
+
+	# Repeat navigation at a controlled interval while the stick is held.
+	if vertical != 0.0 and _menu_nav_cooldown <= 0.0:
+		_move_pause_selection(int(vertical))
+		_menu_nav_cooldown = menu_navigation_delay
+
+	# Horizontal movement adjusts a focused volume slider.
+	var horizontal: float = 0.0
+
+	if mage_move.x < -menu_navigation_dead_zone or knight_move.x < -menu_navigation_dead_zone:
+		horizontal = -1.0
+	elif mage_move.x > menu_navigation_dead_zone or knight_move.x > menu_navigation_dead_zone:
+		horizontal = 1.0
+
+	if horizontal != 0.0:
+		_adjust_focused_control(horizontal, delta)
+
+	# Right analog stick scrolling remains available for either player.
+	if _controls_panel.visible:
+		_scroll_controls_text(PlayerInput.get_look(1), delta)
+		_scroll_controls_text(PlayerInput.get_look(2), delta)
+
+	# Use each controller's existing interaction-consumption function.
+	var mage_interact: bool = PlayerInput.consume_interaction(1)
+	var knight_interact: bool = PlayerInput.consume_interaction(2)
+
+	if mage_interact or knight_interact:
+		_activate_pause_selection()
+
+
+func _move_pause_selection(direction: int) -> void:
+	var panel: Control = _get_active_pause_panel()
+
+	if panel == null:
+		return
+
+	var controls: Array[Control] = []
+	_collect_focusable_controls(panel, controls)
+
+	if controls.is_empty():
+		return
+
+	var focused: Control = get_viewport().gui_get_focus_owner()
+	var current_index: int = controls.find(focused)
+
+	var next_index: int
+
+	if current_index == -1:
+		next_index = 0
+	else:
+		next_index = posmod(current_index + direction, controls.size())
+
+	controls[next_index].grab_focus()
+
+
+func _collect_focusable_controls(node: Node, output: Array[Control]) -> void:
+	for child in node.get_children():
+		if child is Control:
+			var control := child as Control
+
+			if (
+				control.is_visible_in_tree()
+				and control.focus_mode != Control.FOCUS_NONE
+				and (control is Button or control is Slider or control is CheckBox)
+			):
+				output.append(control)
+
+		_collect_focusable_controls(child, output)
+
+
+func _get_active_pause_panel() -> Control:
+	for panel in [_main_panel, _settings_panel, _controls_panel, _confirm_panel]:
+		if panel.visible:
+			return panel
+
+	return null
+
+
+func _activate_pause_selection() -> void:
+	var focused: Control = get_viewport().gui_get_focus_owner()
+
+	if focused is Button:
+		var button := focused as Button
+
+		if button.is_visible_in_tree() and not button.disabled:
+			button.pressed.emit()
+	elif focused is CheckButton:
+		var check := focused as CheckButton
+
+		if check.is_visible_in_tree() and not check.disabled:
+			check.button_pressed = not check.button_pressed
+			check.toggled.emit(check.button_pressed)
+
+
+func _adjust_focused_control(direction: float, delta: float) -> void:
+	var focused: Control = get_viewport().gui_get_focus_owner()
+
+	if focused is HSlider:
+		var slider := focused as HSlider
+
+		slider.value += (
+			direction
+			* delta
+			* slider_adjust_speed
+			* (slider.max_value - slider.min_value)
+		)
+
+
+func _scroll_controls_text(look: Vector2, delta: float) -> void:
+	if absf(look.y) < panel_scroll_dead_zone:
+		return
+
+	var scrollbar: VScrollBar = _controls_body.get_v_scroll_bar()
+
+	if scrollbar == null:
+		return
+
+	var scroll_amount: float = look.y * panel_scroll_speed * delta
+
+	scrollbar.value = clampf(
+		scrollbar.value + scroll_amount,
+		scrollbar.min_value,
+		scrollbar.max_value
+	)
 
 
 # =========================================================
@@ -151,6 +336,7 @@ func open() -> void:
 	_show_only(_main_panel)
 	_root.visible = true
 	_root.modulate.a = 0.0
+	_menu_nav_cooldown = menu_navigation_delay
 
 	var tween := create_tween()
 	tween.tween_property(_root, "modulate:a", 1.0, 0.15)
@@ -198,6 +384,7 @@ func _open_sub(panel: Control, opener: Control) -> void:
 		_cancel_btn.grab_focus()
 	else:
 		var back_button: Button = panel.find_child("Back", true, false) as Button
+
 		if back_button != null:
 			back_button.grab_focus()
 
@@ -237,12 +424,15 @@ func _input_hint(action: String) -> String:
 			var key_event := event as InputEventKey
 			var code := key_event.physical_keycode if key_event.physical_keycode != 0 else key_event.keycode
 			parts.append(OS.get_keycode_string(code))
+
 		elif event is InputEventJoypadButton:
 			var button_event := event as InputEventJoypadButton
 			parts.append("Pad button %d" % button_event.button_index)
+
 		elif event is InputEventJoypadMotion:
 			var motion_event := event as InputEventJoypadMotion
 			parts.append("Pad axis %d" % motion_event.axis)
+
 		elif event is InputEventMouseButton:
 			var mouse_event := event as InputEventMouseButton
 			parts.append("Mouse %d" % mouse_event.button_index)
@@ -271,8 +461,13 @@ func _build_controls_text() -> String:
 		lines.append("[color=#%s][b]%s[/b][/color]" % [color_code, title_text])
 
 		for label in controls:
-			var hint := _input_hint(String(controls[label]))
-			lines.append("    %s - %s" % [String(label), hint if hint != "" else "not set"])
+			var action := String(controls[label])
+			var hint := _input_hint(action)
+
+			lines.append("    %s - %s" % [
+				String(label),
+				hint if hint != "" else "not set"
+			])
 
 		lines.append("")
 
@@ -427,6 +622,7 @@ func _load_settings() -> void:
 
 func _apply_bus(bus_name: String, linear: float) -> void:
 	var bus_index := AudioServer.get_bus_index(bus_name)
+
 	if bus_index == -1:
 		return
 

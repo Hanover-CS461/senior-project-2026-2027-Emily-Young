@@ -1,8 +1,5 @@
-extends Control
 
-## Virelune title screen.
-## Keyboard, mouse, and standard Godot gamepad navigation.
-## Menu panels are independent of gameplay and puzzle scripts.
+extends Control
 
 signal play_requested
 
@@ -16,6 +13,10 @@ signal play_requested
 @export_group("Audio buses")
 @export var music_bus_name: String = "Music"
 @export var sfx_bus_name: String = "SFX"
+
+@export_group("Panel Scrolling")
+@export var panel_scroll_speed: float = 350.0
+@export var panel_scroll_dead_zone: float = 0.2
 
 @export_group("Panel text")
 @export_multiline var how_to_play_text: String = "[center][b]TWO HEROES. ONE DUNGEON.[/b][/center]\n\nVirelune is a local two-player co-op dungeon adventure. Explore ancient ruins, solve environmental puzzles, overcome dangerous mechanisms, and restore the Threefold Seal.\n\n[color=#8fb4ff][b]THE MAGE — PLAYER 1[/b][/color]\nThe Mage specializes in magic and precision. Use elemental abilities and interact with magical objects to overcome obstacles. Fire, Ice, and Healing are planned abilities.\n\n[color=#d9b36c][b]THE KNIGHT — PLAYER 2[/b][/color]\nThe Knight specializes in strength and physical interaction. Operate mechanisms, confront enemies, and help clear a path through the ruins.\n\n[color=#e8c98a][b]WORK TOGETHER[/b][/color]\nSome challenges require both heroes. Coordinate your actions and discover how your abilities complement each other. Neither hero is meant to solve every challenge alone.\n\n[b]CONTROLS[/b]\nKeyboard and mouse controls are available for the current prototype. Custom Arduino-compatible controllers are being developed as part of the project. Final button assignments will be listed here once the layouts are complete.\n\n[i]Virelune is an evolving senior project. Features and controls may change during development.[/i]"
@@ -39,6 +40,10 @@ var _cfg: ConfigFile = ConfigFile.new()
 var _ctrl_status: Dictionary = {}
 var _toast_tween: Tween
 
+var _menu_nav_cooldown: float = 0.0
+var _menu_nav_delay: float = 0.22
+var _menu_controls: Array[Button] = []
+var _panel_nav_controls: Array[Button] = []
 
 @onready var _backdrop_holder: Control = $BackdropHolder
 @onready var _hero: Control = $Hero
@@ -90,7 +95,7 @@ func _ready() -> void:
 	_hero.visible = show_heroes
 	_subtitle.text = subtitle
 	_footer.text = "LOCAL CO-OP  •  2 PLAYERS"
-	_hint.text = "↑ ↓ Navigate     Enter Select     Esc Back"
+	_hint.text = "Move Up/Down: Navigate     Look Up/Down: Scroll Text     Interact: Select     Esc: Back"
 
 	_footer.add_theme_color_override("font_color", TEXT_DIM)
 	_hint.add_theme_color_override("font_color", TEXT_DIM)
@@ -98,23 +103,28 @@ func _ready() -> void:
 	_subtitle.add_theme_font_size_override("font_size", 18)
 
 	_play.pressed.connect(_on_play)
+
 	_how.pressed.connect(
 		func() -> void:
 			_show_info("HOW TO PLAY", how_to_play_text, _how)
 	)
+
 	_credits.pressed.connect(
 		func() -> void:
 			_show_info("CREDITS", credits_text, _credits)
 	)
+
 	_controllers.pressed.connect(
 		func() -> void:
 			_refresh_controllers()
 			_open_panel(_ctrl_panel, _controllers)
 	)
+
 	_settings.pressed.connect(
 		func() -> void:
 			_open_panel(_settings_panel, _settings)
 	)
+
 	_quit.pressed.connect(
 		func() -> void:
 			get_tree().quit()
@@ -132,6 +142,15 @@ func _ready() -> void:
 	_fade.modulate.a = 0.0
 	_toast.visible = false
 
+	_menu_controls = [
+		_play,
+		_how,
+		_controllers,
+		_settings,
+		_credits,
+		_quit
+	]
+
 	if not Input.joy_connection_changed.is_connected(_on_joy_connection_changed):
 		Input.joy_connection_changed.connect(_on_joy_connection_changed)
 
@@ -139,21 +158,198 @@ func _ready() -> void:
 	_resize_particles()
 	resized.connect(_resize_particles)
 
+	set_process(true)
+
 	_play_intro()
 	_play.grab_focus()
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if _overlay.visible and event.is_action_pressed("ui_cancel"):
-		_close_panel()
-		get_viewport().set_input_as_handled()
+# -------------------------------------------------------------------
+# SHARED INPUT AND MENU NAVIGATION
+# -------------------------------------------------------------------
 
+func _process(delta: float) -> void:
+	if _busy:
+		return
+
+	if _menu_nav_cooldown > 0.0:
+		_menu_nav_cooldown -= delta
+
+	var mage_move: Vector2 = PlayerInput.get_move(1)
+	var knight_move: Vector2 = PlayerInput.get_move(2)
+
+	# Either player's movement stick navigates vertically.
+	var vertical: float = 0.0
+
+	if mage_move.y < -0.6 or knight_move.y < -0.6:
+		vertical = -1.0
+	elif mage_move.y > 0.6 or knight_move.y > 0.6:
+		vertical = 1.0
+
+	if vertical != 0.0 and _menu_nav_cooldown <= 0.0:
+		if _overlay.visible:
+			_move_panel_selection(int(vertical))
+		else:
+			_move_menu_selection(int(vertical))
+
+		_menu_nav_cooldown = _menu_nav_delay
+
+	# Either player's right-look analog scrolls text in open panels.
+	if _overlay.visible:
+		_scroll_panel_text(PlayerInput.get_look(1), delta)
+		_scroll_panel_text(PlayerInput.get_look(2), delta)
+
+	# Consume each player's interaction independently.
+	var mage_interact: bool = PlayerInput.consume_interaction(1)
+	var knight_interact: bool = PlayerInput.consume_interaction(2)
+
+	if mage_interact or knight_interact:
+		_activate_focused_button()
+
+
+func _move_menu_selection(direction: int) -> void:
+	if _menu_controls.is_empty():
+		return
+
+	var current := get_viewport().gui_get_focus_owner()
+	var current_index: int = -1
+
+	for i in range(_menu_controls.size()):
+		if _menu_controls[i] == current:
+			current_index = i
+			break
+
+	if current_index == -1:
+		_menu_controls[0].grab_focus()
+		return
+
+	var next_index: int = (
+		current_index + direction + _menu_controls.size()
+	) % _menu_controls.size()
+
+	_menu_controls[next_index].grab_focus()
+
+
+func _move_panel_selection(direction: int) -> void:
+	var panel := _get_active_panel()
+
+	if panel == null:
+		return
+
+	_panel_nav_controls.clear()
+	_collect_buttons(panel, _panel_nav_controls)
+
+	if _panel_nav_controls.is_empty():
+		return
+
+	var current := get_viewport().gui_get_focus_owner()
+	var current_index: int = -1
+
+	for i in range(_panel_nav_controls.size()):
+		if _panel_nav_controls[i] == current:
+			current_index = i
+			break
+
+	if current_index == -1:
+		_panel_nav_controls[0].grab_focus()
+		return
+
+	var next_index: int = (
+		current_index + direction + _panel_nav_controls.size()
+	) % _panel_nav_controls.size()
+
+	_panel_nav_controls[next_index].grab_focus()
+
+
+func _collect_buttons(node: Node, output: Array[Button]) -> void:
+	for child in node.get_children():
+		if child is Button:
+			var button := child as Button
+
+			if button.visible and not button.disabled:
+				output.append(button)
+
+		_collect_buttons(child, output)
+
+
+func _get_active_panel() -> Control:
+	for panel in [_info_panel, _ctrl_panel, _settings_panel]:
+		if panel.visible:
+			return panel
+
+	return null
+
+
+func _activate_focused_button() -> void:
+	var focused := get_viewport().gui_get_focus_owner()
+
+	if focused is Button and focused.is_visible_in_tree():
+		var button := focused as Button
+
+		if not button.disabled:
+			button.pressed.emit()
+
+
+# -------------------------------------------------------------------
+# RIGHT-ANALOG TEXT SCROLLING
+# -------------------------------------------------------------------
+
+func _scroll_panel_text(look: Vector2, delta: float) -> void:
+	var panel := _get_active_panel()
+
+	if panel == null:
+		return
+
+	if abs(look.y) < panel_scroll_dead_zone:
+		return
+
+	var scroll_amount: float = look.y * panel_scroll_speed * delta
+
+	# The How to Play and Credits panel uses this RichTextLabel.
+	if panel == _info_panel:
+		var bar := _info_body.get_v_scroll_bar()
+		bar.value = clampf(
+			bar.value + scroll_amount,
+			bar.min_value,
+			bar.max_value
+		)
+		return
+
+	# Other panels can use a ScrollContainer for their contents.
+	var scroll_container := panel.find_child(
+		"ScrollContainer",
+		true,
+		false
+	) as ScrollContainer
+
+	if scroll_container != null:
+		var bar := scroll_container.get_v_scroll_bar()
+		bar.value = clampf(
+			bar.value + scroll_amount,
+			bar.min_value,
+			bar.max_value
+		)
+
+
+# -------------------------------------------------------------------
+# KEYBOARD / GAMEPAD BACK NAVIGATION
+# -------------------------------------------------------------------
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") and not event.is_echo():
+		if _overlay.visible:
+			_close_panel()
+			get_viewport().set_input_as_handled()
+
+
+# -------------------------------------------------------------------
+# CONTROLLER STATUS
+# -------------------------------------------------------------------
 
 func _on_joy_connection_changed(_device: int, _connected: bool) -> void:
 	_refresh_controllers()
 
 
-## Call this from the controller manager when a custom controller connects.
 func set_controller_status(
 	player_index: int,
 	connected: bool,
@@ -163,12 +359,58 @@ func set_controller_status(
 		"connected": connected,
 		"details": details
 	}
+
 	_refresh_controllers()
+
+
+func _refresh_controllers() -> void:
+	var pads: Array[int] = Input.get_connected_joypads()
+	var names := PackedStringArray()
+
+	for id in pads:
+		names.append("• " + Input.get_joy_name(id))
+
+	var summary := "Standard gamepads detected: %d" % pads.size()
+
+	if not names.is_empty():
+		summary += "\n" + "\n".join(names)
+
+	summary += "\n\nArduino serial controllers require a serial connection script."
+
+	_ctrl_summary.text = summary
+	_ctrl_p1.text = _player_line(1, "MAGE")
+	_ctrl_p2.text = _player_line(2, "KNIGHT")
+
+
+func _player_line(player_index: int, role: String) -> String:
+	var line := "PLAYER %d — %s\n" % [player_index, role]
+
+	if role == "MAGE":
+		line += "Role: Magic and precision.\n"
+		line += "Planned abilities: Fire, Ice, and Healing.\n"
+	else:
+		line += "Role: Strength and physical interactions.\n"
+		line += "Planned abilities: Mechanisms and combat.\n"
+
+	if not _ctrl_status.has(player_index):
+		line += "Custom controller: Not linked to menu."
+		return line
+
+	var status: Dictionary = _ctrl_status[player_index]
+	line += "Custom controller: "
+	line += "Connected" if bool(status.get("connected", false)) else "Not detected"
+
+	var details: String = str(status.get("details", ""))
+
+	if not details.is_empty():
+		line += "\nDetails: " + details
+
+	return line
 
 
 # -------------------------------------------------------------------
 # TITLE BUILDING
-
+# -------------------------------------------------------------------
 
 func _build_title() -> void:
 	for child in _title_row.get_children():
@@ -242,8 +484,7 @@ func _style_menu() -> void:
 		button.add_theme_color_override("font_hover_color", Color.WHITE)
 		button.add_theme_color_override("font_focus_color", Color.WHITE)
 
-		if not button.mouse_entered.is_connected(_on_menu_mouse_entered.bind(button)):
-			button.mouse_entered.connect(_on_menu_mouse_entered.bind(button))
+		button.mouse_entered.connect(_on_menu_mouse_entered.bind(button))
 
 
 func _on_menu_mouse_entered(button: Button) -> void:
@@ -324,7 +565,7 @@ func _play_intro() -> void:
 
 # -------------------------------------------------------------------
 # MENU ACTIONS AND PANELS
-
+# -------------------------------------------------------------------
 
 func _on_play() -> void:
 	if _busy:
@@ -379,57 +620,8 @@ func _close_panel() -> void:
 
 
 # -------------------------------------------------------------------
-# CONTROLLERS
-
-
-func _refresh_controllers() -> void:
-	var pads: Array[int] = Input.get_connected_joypads()
-	var names := PackedStringArray()
-
-	for id in pads:
-		names.append("• " + Input.get_joy_name(id))
-
-	var summary := "Standard gamepads detected: %d" % pads.size()
-
-	if not names.is_empty():
-		summary += "\n" + "\n".join(names)
-
-	summary += "\n\nArduino serial controllers require a serial connection script."
-
-	_ctrl_summary.text = summary
-	_ctrl_p1.text = _player_line(1, "MAGE")
-	_ctrl_p2.text = _player_line(2, "KNIGHT")
-
-
-func _player_line(player_index: int, role: String) -> String:
-	var line := "PLAYER %d — %s\n" % [player_index, role]
-
-	if role == "MAGE":
-		line += "Role: Magic and precision.\n"
-		line += "Planned abilities: Fire, Ice, and Healing.\n"
-	else:
-		line += "Role: Strength and physical interactions.\n"
-		line += "Planned abilities: Mechanisms and combat.\n"
-
-	if not _ctrl_status.has(player_index):
-		line += "Custom controller: Not linked to menu."
-		return line
-
-	var status: Dictionary = _ctrl_status[player_index]
-	line += "Custom controller: "
-	line += "Connected" if bool(status.get("connected", false)) else "Not detected"
-
-	var details: String = str(status.get("details", ""))
-
-	if not details.is_empty():
-		line += "\nDetails: " + details
-
-	return line
-
-
-# -------------------------------------------------------------------
 # SETTINGS
-
+# -------------------------------------------------------------------
 
 func _load_settings() -> void:
 	var error: Error = _cfg.load(SETTINGS_PATH)
@@ -548,7 +740,7 @@ func _build_settings_rows() -> void:
 
 # -------------------------------------------------------------------
 # STYLE HELPERS
-
+# -------------------------------------------------------------------
 
 func _with_alpha(color: Color, alpha: float) -> Color:
 	return Color(color.r, color.g, color.b, alpha)
@@ -626,7 +818,7 @@ func _make_theme() -> Theme:
 		"font_color",
 		"font_hover_color",
 		"font_pressed_color",
-        "font_focus_color"
+		"font_focus_color"
 	]:
 		result.set_color(color_name, "Button", TEXT)
 
@@ -641,7 +833,7 @@ func _make_theme() -> Theme:
 
 # -------------------------------------------------------------------
 # TOAST NOTIFICATIONS
-
+# -------------------------------------------------------------------
 
 func _show_toast(message: String, color: Color = FIRE) -> void:
 	_toast_label.text = message
