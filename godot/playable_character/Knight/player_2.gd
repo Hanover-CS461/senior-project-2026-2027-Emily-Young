@@ -21,6 +21,13 @@ const LEVER_JOYSTICK_DEADZONE: float = 0.15
 
 const FIRE_GEAR_ANIMATION: String = "Rig_Medium_Tools/Lockpicking"
 
+const SHIELD_BLOCK_ANIMATION: String = "Rig_Medium_CombatMelee/Melee_Block"
+const SHIELD_HOLD_ANIMATION: String = "Rig_Medium_CombatMelee/Melee_Blocking"
+const SHIELD_ATTACK_ANIMATION: String = "Rig_Medium_CombatMelee/Melee_Block_Attack"
+const SHIELD_HIT_ANIMATION: String = "Rig_Medium_CombatMelee/Melee_Block_Hit"
+
+const NORMAL_ATTACK_ANIMATION: String = "Rig_Medium_CombatMelee/Melee_Unarmed_Attack_Punch_A"
+
 @onready var animation_player: AnimationPlayer = $Knight/AnimationPlayer
 @onready var camera_pivot: Node3D = $CameraPivot
 @onready var arduino_knight = ArduinoKnight
@@ -428,7 +435,6 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Fire Gear mode: keep the Knight stationary while operating.
-	# The Fire Gear interaction script handles exiting this mode.
 	if is_operating_fire_gear:
 		hold_player_in_place(delta)
 
@@ -498,10 +504,17 @@ func _physics_process(delta: float) -> void:
 	if attack_timer > 0.0:
 		attack_timer -= delta
 
-	# SHIELD
-	if (
+	# ==========================================
+	# SHIELD INPUT AND HOLD ANIMATION
+	# ==========================================
+
+	var shield_held: bool = (
 		is_instance_valid(arduino_knight)
 		and arduino_knight.shield
+	)
+
+	if (
+		shield_held
 		and not is_attacking
 		and not is_jumping
 		and not is_landing
@@ -510,37 +523,62 @@ func _physics_process(delta: float) -> void:
 		if not is_shielding:
 			is_shielding = true
 			shield_starting = true
-			play_animation("Rig_Medium_CombatMelee/Melee_Block")
+			is_blocking_hit = false
+			play_animation(SHIELD_BLOCK_ANIMATION)
+
+		elif is_blocking_hit:
+			# Let the shield-hit animation finish before returning to hold.
+			pass
+
 		elif shield_starting:
+			if animation_player.current_animation != SHIELD_BLOCK_ANIMATION:
+				play_animation(SHIELD_BLOCK_ANIMATION)
+
 			var block_length: float = animation_player.current_animation_length
 			var block_position: float = animation_player.current_animation_position
 
-			if block_position >= block_length - 0.05:
+			if (
+				animation_player.current_animation == SHIELD_BLOCK_ANIMATION
+				and block_position >= block_length - 0.05
+			):
 				shield_starting = false
-				play_animation("Rig_Medium_CombatMelee/Melee_Blocking")
-		elif not is_blocking_hit:
-			play_animation("Rig_Medium_CombatMelee/Melee_Blocking")
+				play_animation(SHIELD_HOLD_ANIMATION)
+
+		else:
+			if animation_player.current_animation != SHIELD_HOLD_ANIMATION:
+				play_animation(SHIELD_HOLD_ANIMATION)
+
 	else:
-		if (
-			is_shielding
-			and (
-				not is_instance_valid(arduino_knight)
-				or not arduino_knight.shield
-			)
-		):
+		if not shield_held and is_shielding:
 			is_shielding = false
 			shield_starting = false
 			is_blocking_hit = false
 
+	# ==========================================
 	# HIT ANIMATION
-	if is_hit:
-		var hit_length: float = animation_player.current_animation_length
-		var hit_position: float = animation_player.current_animation_position
+	# ==========================================
 
-		if hit_position >= hit_length:
-			is_hit = false
+	if is_blocking_hit:
+		if animation_player.current_animation != SHIELD_HIT_ANIMATION:
+			is_blocking_hit = false
 
+		elif (
+			animation_player.current_animation_position
+			>= animation_player.current_animation_length - 0.05
+		):
+			is_blocking_hit = false
+
+			if shield_held and is_shielding:
+				shield_starting = false
+				play_animation(SHIELD_HOLD_ANIMATION)
+			else:
+				is_shielding = false
+				shield_starting = false
+
+	# ==========================================
 	# ATTACK INPUT
+	# ==========================================
+
 	var controller_attack: bool = (
 		is_instance_valid(arduino_knight)
 		and arduino_knight.attack_pressed
@@ -554,13 +592,18 @@ func _physics_process(delta: float) -> void:
 		and attack_timer <= 0.0
 		and not is_attacking
 		and not is_hit
+		and not is_blocking_hit
 	):
 		if is_instance_valid(arduino_knight):
 			arduino_knight.attack_pressed = false
+
 		attack()
 		return
 
+	# ==========================================
 	# ATTACKING
+	# ==========================================
+
 	if is_attacking:
 		var attack_length: float = animation_player.current_animation_length
 		var attack_position: float = animation_player.current_animation_position
@@ -594,30 +637,19 @@ func _physics_process(delta: float) -> void:
 		is_attacking = false
 		attack_timer = attack_cooldown
 
-		if (
-			is_instance_valid(arduino_knight)
-			and arduino_knight.shield
-		):
-			is_shielding = true
+		if shield_held and is_shielding:
 			shield_starting = false
-			play_animation("Rig_Medium_CombatMelee/Melee_Blocking")
+			is_blocking_hit = false
+			play_animation(SHIELD_HOLD_ANIMATION)
+		else:
+			play_animation("Rig_Medium_General/Idle_A")
+
 		return
 
-	# SHIELD HIT
-	if is_blocking_hit:
-		var block_hit_length: float = animation_player.current_animation_length
-		var block_hit_position: float = animation_player.current_animation_position
-
-		if block_hit_position >= block_hit_length:
-			is_blocking_hit = false
-
-			if (
-				is_instance_valid(arduino_knight)
-				and arduino_knight.shield
-			):
-				play_animation("Rig_Medium_CombatMelee/Melee_Blocking")
-
+	# ==========================================
 	# CAMERA
+	# ==========================================
+
 	if is_instance_valid(arduino_knight):
 		var look: Vector2 = arduino_knight.get_look()
 
@@ -630,11 +662,17 @@ func _physics_process(delta: float) -> void:
 				camera_pivot.rotation.x, -0.4, 0.4
 			)
 
+	# ==========================================
 	# GRAVITY
+	# ==========================================
+
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 
+	# ==========================================
 	# MOVEMENT
+	# ==========================================
+
 	var joystick: Vector2 = Vector2.ZERO
 
 	if is_instance_valid(arduino_knight):
@@ -648,7 +686,10 @@ func _physics_process(delta: float) -> void:
 		direction = direction.normalized()
 		direction = transform.basis * direction
 
+	# ==========================================
 	# JUMP
+	# ==========================================
+
 	var jump_requested: bool = Input.is_action_just_pressed("p2_jump")
 
 	if (
@@ -669,7 +710,10 @@ func _physics_process(delta: float) -> void:
 		is_jumping = true
 		play_animation("Rig_Medium_MovementBasic/Jump_Start")
 
+	# ==========================================
 	# MOVEMENT SPEED AND ANIMATIONS
+	# ==========================================
+
 	if direction.length() > 0.0:
 		var sprinting: bool = (
 			is_instance_valid(arduino_knight)
@@ -680,7 +724,12 @@ func _physics_process(delta: float) -> void:
 			velocity.x = direction.x * RUN_SPEED
 			velocity.z = direction.z * RUN_SPEED
 
-			if not is_jumping and not is_landing and not is_shielding and not is_hit:
+			if (
+				not is_jumping
+				and not is_landing
+				and not is_shielding
+				and not is_hit
+			):
 				if joystick.y < -0.15:
 					play_animation("Rig_Medium_MovementBasic/Running_B")
 				else:
@@ -689,7 +738,12 @@ func _physics_process(delta: float) -> void:
 			velocity.x = direction.x * WALK_SPEED
 			velocity.z = direction.z * WALK_SPEED
 
-			if not is_jumping and not is_landing and not is_shielding and not is_hit:
+			if (
+				not is_jumping
+				and not is_landing
+				and not is_shielding
+				and not is_hit
+			):
 				if joystick.y < -0.15:
 					play_animation("Rig_Medium_MovementBasic/Walking_B")
 				else:
@@ -698,12 +752,20 @@ func _physics_process(delta: float) -> void:
 		velocity.x = 0.0
 		velocity.z = 0.0
 
-		if not is_jumping and not is_landing and not is_shielding and not is_hit:
+		if (
+			not is_jumping
+			and not is_landing
+			and not is_shielding
+			and not is_hit
+		):
 			play_animation("Rig_Medium_General/Idle_A")
 
 	move_and_slide()
 
+	# ==========================================
 	# LANDING
+	# ==========================================
+
 	if is_jumping and is_on_floor():
 		is_jumping = false
 		is_landing = true
@@ -788,7 +850,6 @@ func start_fire_gear_mode() -> void:
 
 
 func stop_fire_gear_mode() -> void:
-	# Always clear the flag, even if it was already changed elsewhere.
 	is_operating_fire_gear = false
 
 	velocity = Vector3.ZERO
@@ -818,16 +879,38 @@ func stop_fire_gear_mode() -> void:
 
 func attack() -> void:
 	is_attacking = true
-	play_animation("Rig_Medium_CombatMelee/Melee_Attack_1H")
+
+	if is_shielding:
+		play_animation(SHIELD_ATTACK_ANIMATION)
+	else:
+		play_animation(NORMAL_ATTACK_ANIMATION)
 
 
 func take_damage(amount: int) -> void:
 	if (
 		is_dead
-		or is_shielding
 		or is_pulling_lever
 		or is_operating_fire_gear
 	):
+		return
+
+	# A shielded Knight blocks the hit without losing health.
+	if is_shielding:
+		is_blocking_hit = true
+		is_hit = false
+		is_attacking = false
+		shield_starting = false
+
+		if animation_player.has_animation(SHIELD_HIT_ANIMATION):
+			animation_player.play(SHIELD_HIT_ANIMATION)
+			current_animation = SHIELD_HIT_ANIMATION
+			print("Knight blocks the incoming hit!")
+		else:
+			push_warning(
+				"Knight: Shield hit animation not found: "
+				+ SHIELD_HIT_ANIMATION
+			)
+
 		return
 
 	health -= amount
