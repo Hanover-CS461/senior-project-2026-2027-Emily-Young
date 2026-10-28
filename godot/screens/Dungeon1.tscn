@@ -27,6 +27,8 @@
 [ext_resource type="PackedScene" uid="uid://cw6crok5wdwrd" path="res://models/dungeon_assets/GLB format/stairs-wide.glb" id="22_q7r2e"]
 [ext_resource type="PackedScene" uid="uid://fgafx7pk55cb" path="res://models/dungeon_assets/GLB format/template-floor-detail-a.glb" id="23_og0mk"]
 [ext_resource type="Script" uid="uid://477xyib5clev" path="res://screens/ice_shrine.gd" id="24_ae3xc"]
+[ext_resource type="Script" uid="uid://x6wndbmpl6j2" path="res://screens/heal_station.gd" id="25_5k4n8"]
+[ext_resource type="Script" uid="uid://cbfjtm8xjokx6" path="res://screens/heal_spell_target.gd" id="26_1sos0"]
 [ext_resource type="PackedScene" path="res://pause_menu/pause_menu.tscn" id="28_qkl6n"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7dm0k"]
@@ -65,6 +67,12 @@ size = Vector3(2.7175598, 3.6518555, 2.4304218)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_uo5mk"]
 size = Vector3(2.373291, 2.659668, 2.5302734)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1sbd3"]
+size = Vector3(3.3087158, 3.788391, 3.9174805)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_n6kla"]
+size = Vector3(1, 1.9555664, 1)
 
 [node name="Main" type="Node3D" unique_id=1941153417]
 script = ExtResource("1_gm3jy")
@@ -238,30 +246,30 @@ puzzle_controller_path = NodePath("PuzzleController")
 [node name="PuzzleController" type="Node3D" parent="Dungeon1Map/PuzzleRoom" unique_id=1055054332]
 script = ExtResource("19_n7bgw")
 
-[node name="Interactables" type="Node3D" parent="Dungeon1Map/PuzzleRoom" unique_id=1382623615]
+[node name="FireShrine" type="Node3D" parent="Dungeon1Map/PuzzleRoom" unique_id=1382623615]
 
-[node name="FireInteraction" type="Area3D" parent="Dungeon1Map/PuzzleRoom/Interactables" unique_id=1220707230]
+[node name="FireInteraction" type="Area3D" parent="Dungeon1Map/PuzzleRoom/FireShrine" unique_id=1220707230]
 script = ExtResource("20_q7r2e")
 
-[node name="FireSpell" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/Interactables/FireInteraction" unique_id=1598484198]
+[node name="FireSpell" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/FireShrine/FireInteraction" unique_id=1598484198]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.672308, 1.801765, 1.9286709)
 shape = SubResource("BoxShape3D_ax2yb")
 
-[node name="FireSpellTarget" type="Area3D" parent="Dungeon1Map/PuzzleRoom/Interactables" unique_id=1085401543]
+[node name="FireSpellTarget" type="Area3D" parent="Dungeon1Map/PuzzleRoom/FireShrine" unique_id=1085401543]
 script = ExtResource("21_vgq0e")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/Interactables/FireSpellTarget" unique_id=95189374]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/FireShrine/FireSpellTarget" unique_id=95189374]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5939474, 2.061113, 1.9192657)
 shape = SubResource("BoxShape3D_og0mk")
 
-[node name="FireGearInteraction" type="Area3D" parent="Dungeon1Map/PuzzleRoom/Interactables" unique_id=481040114]
+[node name="FireGearInteraction" type="Area3D" parent="Dungeon1Map/PuzzleRoom/FireShrine" unique_id=481040114]
 script = ExtResource("22_3y4oo")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/Interactables/FireGearInteraction" unique_id=1338511862]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/FireShrine/FireGearInteraction" unique_id=1338511862]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.133855, 1.7778107, 1.8813)
 shape = SubResource("BoxShape3D_cdb42")
 
-[node name="KnightStandPosition" type="Marker3D" parent="Dungeon1Map/PuzzleRoom/Interactables/FireGearInteraction" unique_id=991515896]
+[node name="KnightStandPosition" type="Marker3D" parent="Dungeon1Map/PuzzleRoom/FireShrine/FireGearInteraction" unique_id=991515896]
 transform = Transform3D(2.4229228, 0, -0.13509902, 0, 2.4266858, 0, 0.13509902, 0, 2.4229228, -6.318366, 2.4508824, 0.976202)
 
 [node name="IceShrine" type="Node3D" parent="Dungeon1Map/PuzzleRoom" unique_id=1027601280]
@@ -281,8 +289,24 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.619758, 0, 2.6261425)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11291695, 0.82983404, -0.7651329)
 shape = SubResource("BoxShape3D_uo5mk")
 
+[node name="HealShrine" type="Node3D" parent="Dungeon1Map/PuzzleRoom" unique_id=775166594]
+
+[node name="HealStation" type="Area3D" parent="Dungeon1Map/PuzzleRoom/HealShrine" unique_id=1544197551]
+script = ExtResource("25_5k4n8")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/HealShrine/HealStation" unique_id=1169050556]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.1526136, 1.3941957, -6.9292316)
+shape = SubResource("BoxShape3D_1sbd3")
+
+[node name="HealSpellTarget" type="Area3D" parent="Dungeon1Map/PuzzleRoom/HealShrine" unique_id=1985201281]
+script = ExtResource("26_1sos0")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dungeon1Map/PuzzleRoom/HealShrine/HealSpellTarget" unique_id=1385570148]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.216983, 1.5041845, -7.0746784)
+shape = SubResource("BoxShape3D_n6kla")
+
 [node name="gate-metal-bars3" parent="." unique_id=1152951560 instance=ExtResource("16_h03xv")]
-transform = Transform3D(-2.928663e-08, 0, 0.67, 0, 0.67, 0, -0.67, 0, -2.928663e-08, 4.0032744, 1.9514048, 3.1963842)
+transform = Transform3D(-2.928663e-08, 0, 0.67, 0, 0.67, 0, -0.67, 0, -2.928663e-08, 4.223473, 2.2696388, 3.1963842)
 script = ExtResource("19_vvg5t")
 
 [node name="stairs-wide2" parent="." unique_id=1230830797 instance=ExtResource("22_q7r2e")]

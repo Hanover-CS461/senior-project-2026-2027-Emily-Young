@@ -1,4 +1,3 @@
-
 extends Node3D
 
 @export var puzzle_controller_path: NodePath
@@ -129,6 +128,10 @@ func _on_station_completed(station_name: String) -> void:
 
 			_activate_visual("Seal_Symbol_Heal", Color.LIME_GREEN)
 			_activate_visual("Gate_Symbol_Heal", Color.LIME_GREEN)
+			_activate_visual("Conduit_Heal", Color.LIME_GREEN)
+			_activate_visual("Gate_Lock_Heal", Color.LIME_GREEN)
+
+			_release_heal_lock()
 
 		_:
 			push_warning("Unknown completed station: " + station_name)
@@ -188,6 +191,34 @@ func _release_ice_lock() -> void:
 	tween.set_trans(Tween.TRANS_CUBIC)
 	tween.set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(ice_lock, "position", target_position, 1.2)
+
+
+# ==========================================
+# HEAL LOCK MOVEMENT
+# ==========================================
+
+func _release_heal_lock() -> void:
+	var heal_lock := _find_visual("Gate_Lock_Heal")
+
+	if heal_lock == null:
+		return
+
+	if not heal_lock is Node3D:
+		push_warning("Gate_Lock_Heal must be a Node3D.")
+		return
+
+	if heal_lock.has_meta("heal_lock_released"):
+		return
+
+	heal_lock.set_meta("heal_lock_released", true)
+
+	print("The Healing latch is sliding left!")
+
+	var target_position: Vector3 = heal_lock.position + Vector3(-1.0, 0.0, 0.0)
+	var tween := create_tween()
+	tween.set_trans(Tween.TRANS_CUBIC)
+	tween.set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(heal_lock, "position", target_position, 1.2)
 
 
 # ==========================================

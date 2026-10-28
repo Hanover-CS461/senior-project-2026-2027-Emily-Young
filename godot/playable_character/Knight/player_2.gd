@@ -92,7 +92,86 @@ func _ready() -> void:
 		):
 			break
 
-		await get_tree().create_timer(0.5).timeout
+		await get_tree().create_timer(0.5, true, false, true).timeout
+
+
+# ==========================================
+# COMBINED KEYBOARD + ARDUINO INPUT
+# ==========================================
+
+func get_combined_movement() -> Vector2:
+	var keyboard: Vector2 = Input.get_vector(
+		"p2_left",
+		"p2_right",
+		"p2_forward",
+		"p2_backward"
+	)
+
+	var controller: Vector2 = Vector2.ZERO
+
+	if is_instance_valid(arduino_knight):
+		controller = arduino_knight.get_movement()
+
+	var combined: Vector2 = keyboard + controller
+
+	if combined.length() > 1.0:
+		combined = combined.normalized()
+
+	return combined
+
+
+func get_combined_look() -> Vector2:
+	var keyboard_look: Vector2 = Vector2(
+		float(Input.is_action_pressed("p2_look_right"))
+			- float(Input.is_action_pressed("p2_look_left")),
+		float(Input.is_action_pressed("p2_look_down"))
+			- float(Input.is_action_pressed("p2_look_up"))
+	)
+
+	var controller_look: Vector2 = Vector2.ZERO
+
+	if is_instance_valid(arduino_knight):
+		controller_look = arduino_knight.get_look()
+
+	var combined: Vector2 = keyboard_look + controller_look
+
+	if combined.length() > 1.0:
+		combined = combined.normalized()
+
+	return combined
+
+
+func is_sprinting() -> bool:
+	var keyboard_sprint: bool = Input.is_action_pressed("p2_run")
+	var controller_sprint: bool = false
+
+	if is_instance_valid(arduino_knight):
+		controller_sprint = arduino_knight.sprint
+
+	return keyboard_sprint or controller_sprint
+
+
+func is_shield_held() -> bool:
+	var keyboard_shield: bool = Input.is_action_pressed("p2_shield")
+	var controller_shield: bool = false
+
+	if is_instance_valid(arduino_knight):
+		controller_shield = arduino_knight.shield
+
+	return keyboard_shield or controller_shield
+
+
+func is_dodge_requested() -> bool:
+	var keyboard_dodge: bool = Input.is_action_just_pressed("p2_dodge")
+	var controller_dodge: bool = false
+
+	if is_instance_valid(arduino_knight):
+		controller_dodge = arduino_knight.dodge_pressed
+
+	if controller_dodge:
+		arduino_knight.dodge_pressed = false
+
+	return keyboard_dodge or controller_dodge
 
 
 # ==========================================
@@ -142,7 +221,7 @@ func find_ice_shrine() -> void:
 	water_inlet_interaction.monitoring = true
 	lever_interaction.monitoring = true
 
-	for layer in range(1, 33):
+	for layer: int in range(1, 33):
 		water_inlet_interaction.set_collision_mask_value(layer, true)
 		lever_interaction.set_collision_mask_value(layer, true)
 
@@ -199,7 +278,6 @@ func interaction_just_pressed() -> bool:
 func handle_interaction() -> void:
 	print("Knight: Player 2 interaction detected!")
 
-	# Fire Gear interactions are handled by fire_gear_interaction.gd.
 	if (
 		not is_instance_valid(water_inlet_interaction)
 		or not is_instance_valid(lever_interaction)
@@ -303,7 +381,7 @@ func start_lever_pull() -> void:
 	else:
 		push_warning("Knight: Lever-pulling animation was not found.")
 
-	print("Knight: Use the movement joystick to operate the lever.")
+	print("Knight: Use the movement joystick or arrow keys to operate the lever.")
 
 
 func update_lever_pull(delta: float) -> void:
@@ -322,10 +400,7 @@ func update_lever_pull(delta: float) -> void:
 		animation_player.play(LEVER_PULL_ANIMATION)
 		current_animation = LEVER_PULL_ANIMATION
 
-	var joystick: Vector2 = Vector2.ZERO
-
-	if is_instance_valid(arduino_knight):
-		joystick = arduino_knight.get_movement()
+	var joystick: Vector2 = get_combined_movement()
 
 	if joystick.y < -LEVER_JOYSTICK_DEADZONE:
 		lever_current_angle -= LEVER_MOVEMENT_SPEED * delta
@@ -422,6 +497,9 @@ func hold_player_in_place(delta: float) -> void:
 # ==========================================
 
 func _physics_process(delta: float) -> void:
+	if get_tree().paused:
+		return
+
 	var interaction_pressed: bool = interaction_just_pressed()
 
 	if is_dead:
@@ -434,7 +512,6 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
-	# Fire Gear mode: keep the Knight stationary while operating.
 	if is_operating_fire_gear:
 		hold_player_in_place(delta)
 
@@ -476,6 +553,7 @@ func _physics_process(delta: float) -> void:
 			dodge_recovery_timer = DODGE_RECOVERY
 			velocity.x = 0.0
 			velocity.z = 0.0
+
 		return
 
 	if dodge_recovery_timer > 0.0:
@@ -485,33 +563,27 @@ func _physics_process(delta: float) -> void:
 
 		if dodge_recovery_timer <= 0.0:
 			dodge_recovery_timer = 0.0
+
 		return
 
+	# Check whether dodge is allowed BEFORE consuming the controller press.
 	if (
-		is_instance_valid(arduino_knight)
-		and arduino_knight.dodge_pressed
-		and dodge_cooldown_timer <= 0.0
+		dodge_cooldown_timer <= 0.0
 		and not is_jumping
 		and not is_landing
 		and not is_attacking
 		and not is_shielding
 		and not is_hit
+		and is_dodge_requested()
 	):
-		arduino_knight.dodge_pressed = false
 		start_dodge()
 		return
 
 	if attack_timer > 0.0:
 		attack_timer -= delta
 
-	# ==========================================
-	# SHIELD INPUT AND HOLD ANIMATION
-	# ==========================================
-
-	var shield_held: bool = (
-		is_instance_valid(arduino_knight)
-		and arduino_knight.shield
-	)
+	# Shield
+	var shield_held: bool = is_shield_held()
 
 	if (
 		shield_held
@@ -527,7 +599,6 @@ func _physics_process(delta: float) -> void:
 			play_animation(SHIELD_BLOCK_ANIMATION)
 
 		elif is_blocking_hit:
-			# Let the shield-hit animation finish before returning to hold.
 			pass
 
 		elif shield_starting:
@@ -544,9 +615,8 @@ func _physics_process(delta: float) -> void:
 				shield_starting = false
 				play_animation(SHIELD_HOLD_ANIMATION)
 
-		else:
-			if animation_player.current_animation != SHIELD_HOLD_ANIMATION:
-				play_animation(SHIELD_HOLD_ANIMATION)
+		elif animation_player.current_animation != SHIELD_HOLD_ANIMATION:
+			play_animation(SHIELD_HOLD_ANIMATION)
 
 	else:
 		if not shield_held and is_shielding:
@@ -554,10 +624,7 @@ func _physics_process(delta: float) -> void:
 			shield_starting = false
 			is_blocking_hit = false
 
-	# ==========================================
-	# HIT ANIMATION
-	# ==========================================
-
+	# Shield hit animation
 	if is_blocking_hit:
 		if animation_player.current_animation != SHIELD_HIT_ANIMATION:
 			is_blocking_hit = false
@@ -575,14 +642,11 @@ func _physics_process(delta: float) -> void:
 				is_shielding = false
 				shield_starting = false
 
-	# ==========================================
-	# ATTACK INPUT
-	# ==========================================
+	# Attack input
+	var controller_attack: bool = false
 
-	var controller_attack: bool = (
-		is_instance_valid(arduino_knight)
-		and arduino_knight.attack_pressed
-	)
+	if is_instance_valid(arduino_knight):
+		controller_attack = arduino_knight.attack_pressed
 
 	if (
 		(
@@ -600,10 +664,7 @@ func _physics_process(delta: float) -> void:
 		attack()
 		return
 
-	# ==========================================
-	# ATTACKING
-	# ==========================================
-
+	# Attack animation and damage
 	if is_attacking:
 		var attack_length: float = animation_player.current_animation_length
 		var attack_position: float = animation_player.current_animation_position
@@ -614,7 +675,7 @@ func _physics_process(delta: float) -> void:
 		var enemies: Array[Node] = get_tree().get_nodes_in_group("enemies")
 		var hit_enemy: bool = false
 
-		for enemy in enemies:
+		for enemy: Node in enemies:
 			if not is_instance_valid(enemy):
 				continue
 			if not enemy is Node3D:
@@ -646,58 +707,43 @@ func _physics_process(delta: float) -> void:
 
 		return
 
-	# ==========================================
-	# CAMERA
-	# ==========================================
+	# Camera: keyboard and Arduino
+	var look: Vector2 = get_combined_look()
 
-	if is_instance_valid(arduino_knight):
-		var look: Vector2 = arduino_knight.get_look()
+	if look.length() > 0.0:
+		rotate_y(-look.x * CAMERA_SENSITIVITY * delta)
 
-		if look.length() > 0.0:
-			rotate_y(-look.x * CAMERA_SENSITIVITY * delta)
-			camera_pivot.rotate_x(
-				look.y * VERTICAL_CAMERA_SENSITIVITY * delta
-			)
-			camera_pivot.rotation.x = clampf(
-				camera_pivot.rotation.x, -0.4, 0.4
-			)
+		camera_pivot.rotate_x(
+			look.y * VERTICAL_CAMERA_SENSITIVITY * delta
+		)
 
-	# ==========================================
-	# GRAVITY
-	# ==========================================
+		camera_pivot.rotation.x = clampf(
+			camera_pivot.rotation.x, -0.4, 0.4
+		)
 
+	# Gravity
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 
-	# ==========================================
-	# MOVEMENT
-	# ==========================================
-
-	var joystick: Vector2 = Vector2.ZERO
-
-	if is_instance_valid(arduino_knight):
-		joystick = arduino_knight.get_movement()
-
+	# Movement: keyboard and Arduino
+	var joystick: Vector2 = get_combined_movement()
 	var direction: Vector3 = Vector3.ZERO
 
 	if joystick.length() > 0.0:
-		direction.z = -joystick.y
 		direction.x = -joystick.x
+		direction.z = -joystick.y
 		direction = direction.normalized()
 		direction = transform.basis * direction
+		direction.y = 0.0
+		direction = direction.normalized()
 
-	# ==========================================
-	# JUMP
-	# ==========================================
-
+	# Jump
 	var jump_requested: bool = Input.is_action_just_pressed("p2_jump")
 
-	if (
-		is_instance_valid(arduino_knight)
-		and arduino_knight.jump_pressed
-	):
-		jump_requested = true
-		arduino_knight.jump_pressed = false
+	if is_instance_valid(arduino_knight):
+		if arduino_knight.jump_pressed:
+			jump_requested = true
+			arduino_knight.jump_pressed = false
 
 	if (
 		jump_requested
@@ -710,15 +756,9 @@ func _physics_process(delta: float) -> void:
 		is_jumping = true
 		play_animation("Rig_Medium_MovementBasic/Jump_Start")
 
-	# ==========================================
-	# MOVEMENT SPEED AND ANIMATIONS
-	# ==========================================
-
+	# Movement speed and animations
 	if direction.length() > 0.0:
-		var sprinting: bool = (
-			is_instance_valid(arduino_knight)
-			and arduino_knight.sprint
-		)
+		var sprinting: bool = is_sprinting()
 
 		if sprinting:
 			velocity.x = direction.x * RUN_SPEED
@@ -762,10 +802,7 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-	# ==========================================
-	# LANDING
-	# ==========================================
-
+	# Landing
 	if is_jumping and is_on_floor():
 		is_jumping = false
 		is_landing = true
@@ -793,11 +830,7 @@ func start_dodge() -> void:
 	dodge_timer = DODGE_DURATION
 	dodge_cooldown_timer = DODGE_COOLDOWN
 
-	var movement: Vector2 = Vector2.ZERO
-
-	if is_instance_valid(arduino_knight):
-		movement = arduino_knight.get_movement()
-
+	var movement: Vector2 = get_combined_movement()
 	var direction: Vector3 = Vector3.ZERO
 
 	if movement.length() > 0.0:
@@ -894,7 +927,6 @@ func take_damage(amount: int) -> void:
 	):
 		return
 
-	# A shielded Knight blocks the hit without losing health.
 	if is_shielding:
 		is_blocking_hit = true
 		is_hit = false
