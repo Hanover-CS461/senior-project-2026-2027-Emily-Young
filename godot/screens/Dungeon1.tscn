@@ -217,11 +217,11 @@ shape = SubResource("BoxShape3D_d87lq")
 [node name="corridor-transition2" parent="Dungeon1Map/Minion_Den" unique_id=1823783262 instance=ExtResource("15_dfgm3")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.25300002, 0.045377597, 7.972)
 
-[node name="gate-metal-bars4" parent="Dungeon1Map/Minion_Den" unique_id=10281909 instance=ExtResource("16_h03xv")]
-transform = Transform3D(0.022808105, 0, -1.3398062, 0, 1.3400003, 0, 1.3398062, 0, 0.022808105, -9.933346, -0.08808589, 0.021930695)
-
 [node name="gate-door4" parent="Dungeon1Map/Minion_Den" unique_id=1393888030 instance=ExtResource("13_mkt6u")]
 transform = Transform3D(-5.8760584e-08, 0, -1.3442855, 0, 1.3442855, 0, 1.3442855, 0, -5.8760584e-08, 9.493376, -0.0052978992, 0.006324768)
+
+[node name="gate-door5" parent="Dungeon1Map/Minion_Den" unique_id=1034057177 instance=ExtResource("13_mkt6u")]
+transform = Transform3D(-5.8760584e-08, 0, -1.3442855, 0, 1.3442855, 0, 1.3442855, 0, -5.8760584e-08, -9.801184, -0.0052978992, 0.006324768)
 
 [node name="template-wall2" parent="Dungeon1Map/Minion_Den" unique_id=1819335486 instance=ExtResource("17_h03xv")]
 transform = Transform3D(-1.0000001, 0, 0, 0, 1, 0, 0, 0, -1.0000001, -0.22580671, 0.02963841, -6.050308)
@@ -306,11 +306,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.216983, 1.5041845, -7.0746
 shape = SubResource("BoxShape3D_n6kla")
 
 [node name="gate-metal-bars3" parent="." unique_id=1152951560 instance=ExtResource("16_h03xv")]
-transform = Transform3D(-2.928663e-08, 0, 0.67, 0, 0.67, 0, -0.67, 0, -2.928663e-08, 4.223473, 2.2696388, 3.1963842)
+transform = Transform3D(-2.928663e-08, 0, 0.67, 0, 0.67, 0, -0.67, 0, -2.928663e-08, 4.223473, 0.07519388, 3.1963842)
 script = ExtResource("19_vvg5t")
 
 [node name="stairs-wide2" parent="." unique_id=1230830797 instance=ExtResource("22_q7r2e")]
-transform = Transform3D(-2.1855694e-08, 0, 0.5, 0, 0.5, 0, -0.5, 0, -2.1855694e-08, -4.202, -1.9249129, -8.786)
+transform = Transform3D(-1.601464e-08, 0, -0.36637226, 0, 0.36637226, 0, 0.36637226, 0, -1.601464e-08, 21.496265, -1.4529725, 3.107457)
 
 [node name="template-floor-detail-a2" parent="." unique_id=1803396509 instance=ExtResource("23_og0mk")]
 transform = Transform3D(0.31732148, 0, 0, 0, 0.31732148, 0, 0, 0, 0.31732148, 4.982981, 0, 3.8178873)

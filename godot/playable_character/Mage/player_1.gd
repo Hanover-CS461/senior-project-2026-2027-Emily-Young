@@ -10,8 +10,8 @@ const JUMP_VELOCITY: float = 4.5
 @export var camera_dead_zone: float = 0.08
 @export var look_up_down_limit: float = 0.4
 
-@onready var camera_pivot = $CameraPivot
-@onready var animation_player = $Mage/AnimationPlayer
+@onready var camera_pivot: Node3D = $CameraPivot
+@onready var animation_player: AnimationPlayer = $Mage/AnimationPlayer
 
 var current_animation: String = ""
 var is_jumping: bool = false
@@ -27,6 +27,9 @@ var keyboard_cast_requested: bool = false
 
 
 func _ready() -> void:
+	# Register Player 1 so the gate can find and revive the Mage.
+	add_to_group("players")
+
 	arduino = ArduinoMage
 	play_animation("Rig_Medium_General/Idle_A")
 
@@ -53,15 +56,18 @@ func _cycle_spell(direction: int) -> void:
 		return
 
 	var spells_value: Variant = arduino.get("spells")
+
 	if not spells_value is Array:
 		push_warning("ArduinoMage has no valid spells array.")
 		return
 
 	var spells: Array = spells_value
+
 	if spells.is_empty():
 		return
 
 	var selected_spell: int = int(arduino.get("selected_spell"))
+
 	selected_spell = posmod(
 		selected_spell + direction,
 		spells.size()
@@ -302,18 +308,18 @@ func _physics_process(delta: float) -> void:
 # HEALTH / DAMAGE
 # --------------------------------------------------
 func take_damage(amount: int) -> void:
-	if is_dead:
+	if is_dead or amount <= 0:
 		return
 
-	health -= amount
+	health = maxi(0, health - amount)
 	print("Player 1 health: ", health)
 
 	if health <= 0:
-		health = 0
 		is_dead = true
 		is_hit = false
 		is_jumping = false
 		is_landing = false
+		keyboard_cast_requested = false
 		velocity = Vector3.ZERO
 
 		animation_player.stop()
@@ -321,8 +327,34 @@ func take_damage(amount: int) -> void:
 		animation_player.play("Rig_Medium_General/Death_B")
 		current_animation = "Rig_Medium_General/Death_B"
 
-		print("Player 1 defeated!")
+		print("Player 1 defeated! Waiting for revival.")
 		return
 
 	is_hit = true
 	play_animation("Rig_Medium_General/Hit_A")
+
+
+# --------------------------------------------------
+# REVIVE
+# Called by the room-clear system when the partner
+# clears the room.
+# --------------------------------------------------
+func revive(spawn_position: Vector3) -> void:
+	if not is_dead:
+		return
+
+	global_position = spawn_position
+	velocity = Vector3.ZERO
+	health = 100
+
+	is_dead = false
+	is_hit = false
+	is_jumping = false
+	is_landing = false
+	keyboard_cast_requested = false
+
+	animation_player.stop()
+	current_animation = ""
+	play_animation("Rig_Medium_General/Idle_A")
+
+	print("Player 1 revived with ", health, " health!")

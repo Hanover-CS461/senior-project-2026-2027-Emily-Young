@@ -27,6 +27,8 @@ const SHIELD_ATTACK_ANIMATION: String = "Rig_Medium_CombatMelee/Melee_Block_Atta
 const SHIELD_HIT_ANIMATION: String = "Rig_Medium_CombatMelee/Melee_Block_Hit"
 
 const NORMAL_ATTACK_ANIMATION: String = "Rig_Medium_CombatMelee/Melee_Unarmed_Attack_Punch_A"
+const HIT_ANIMATION: String = "Rig_Medium_General/Hit_A"
+const IDLE_ANIMATION: String = "Rig_Medium_General/Idle_A"
 
 @onready var animation_player: AnimationPlayer = $Knight/AnimationPlayer
 @onready var camera_pivot: Node3D = $CameraPivot
@@ -74,7 +76,9 @@ var lever_current_angle: float = 0.0
 
 
 func _ready() -> void:
-	play_animation("Rig_Medium_General/Idle_A")
+	add_to_group("players")
+
+	play_animation(IDLE_ANIMATION)
 	print("Knight: Waiting for the dungeon and Ice Shrine.")
 
 	await get_tree().process_frame
@@ -460,7 +464,7 @@ func finish_lever_pull() -> void:
 		push_error("Knight: Could not complete the Ice Shrine.")
 
 	current_animation = ""
-	play_animation("Rig_Medium_General/Idle_A")
+	play_animation(IDLE_ANIMATION)
 
 
 # ==========================================
@@ -469,6 +473,13 @@ func finish_lever_pull() -> void:
 
 func play_animation(animation_name: String) -> void:
 	if is_pulling_lever or is_operating_fire_gear:
+		return
+
+	if not animation_player.has_animation(animation_name):
+		push_warning(
+			"Knight: Animation not found: " + animation_name
+		)
+		current_animation = ""
 		return
 
 	if current_animation != animation_name:
@@ -511,6 +522,16 @@ func _physics_process(delta: float) -> void:
 
 		move_and_slide()
 		return
+
+	# FIX: Clear the hit state after the hit animation finishes.
+	if is_hit:
+		if (
+			animation_player.current_animation != HIT_ANIMATION
+			or animation_player.current_animation_position
+				>= animation_player.current_animation_length - 0.05
+		):
+			is_hit = false
+			current_animation = ""
 
 	if is_operating_fire_gear:
 		hold_player_in_place(delta)
@@ -703,7 +724,7 @@ func _physics_process(delta: float) -> void:
 			is_blocking_hit = false
 			play_animation(SHIELD_HOLD_ANIMATION)
 		else:
-			play_animation("Rig_Medium_General/Idle_A")
+			play_animation(IDLE_ANIMATION)
 
 		return
 
@@ -798,7 +819,7 @@ func _physics_process(delta: float) -> void:
 			and not is_shielding
 			and not is_hit
 		):
-			play_animation("Rig_Medium_General/Idle_A")
+			play_animation(IDLE_ANIMATION)
 
 	move_and_slide()
 
@@ -818,7 +839,7 @@ func _physics_process(delta: float) -> void:
 			if direction.length() > 0.0:
 				play_animation("Rig_Medium_MovementBasic/Walking_B")
 			else:
-				play_animation("Rig_Medium_General/Idle_A")
+				play_animation(IDLE_ANIMATION)
 
 
 # ==========================================
@@ -899,9 +920,9 @@ func stop_fire_gear_mode() -> void:
 
 	current_animation = ""
 
-	if animation_player.has_animation("Rig_Medium_General/Idle_A"):
-		animation_player.play("Rig_Medium_General/Idle_A")
-		current_animation = "Rig_Medium_General/Idle_A"
+	if animation_player.has_animation(IDLE_ANIMATION):
+		animation_player.play(IDLE_ANIMATION)
+		current_animation = IDLE_ANIMATION
 
 	print("Knight: Fire Gear mode ended. Movement restored.")
 
@@ -924,6 +945,7 @@ func take_damage(amount: int) -> void:
 		is_dead
 		or is_pulling_lever
 		or is_operating_fire_gear
+		or amount <= 0
 	):
 		return
 
@@ -945,13 +967,92 @@ func take_damage(amount: int) -> void:
 
 		return
 
-	health -= amount
+	health = maxi(0, health - amount)
 	print("Knight health: ", health)
 
 	if health <= 0:
 		is_dead = true
-		play_animation("Rig_Medium_General/Death_A")
+		velocity = Vector3.ZERO
+
+		is_hit = false
+		is_jumping = false
+		is_landing = false
+		is_attacking = false
+		is_shielding = false
+		shield_starting = false
+		is_blocking_hit = false
+		is_dodging = false
+		is_pulling_lever = false
+		is_operating_fire_gear = false
+
+		dodge_timer = 0.0
+		dodge_cooldown_timer = 0.0
+		dodge_recovery_timer = 0.0
+		dodge_direction = Vector3.ZERO
+		attack_timer = 0.0
+		lever_current_angle = 0.0
+
+		animation_player.stop()
+		current_animation = ""
+
+		if animation_player.has_animation("Rig_Medium_General/Death_A"):
+			animation_player.play("Rig_Medium_General/Death_A")
+			current_animation = "Rig_Medium_General/Death_A"
+		else:
+			push_warning("Knight: Death animation not found.")
+
+		print("Player 2 defeated! Waiting for revival.")
 		return
 
-	is_hit = true
-	play_animation("Rig_Medium_CombatMelee/Hit_A")
+	# Play the hit animation only if it exists.
+	if animation_player.has_animation(HIT_ANIMATION):
+		is_hit = true
+		animation_player.play(HIT_ANIMATION)
+		current_animation = HIT_ANIMATION
+	else:
+		# Don't leave the Knight locked in the hit state if missing.
+		is_hit = false
+		current_animation = ""
+		push_warning(
+			"Knight: Hit animation not found: " + HIT_ANIMATION
+		)
+
+
+# ==========================================
+# REVIVE
+# Called by the room-clear system when the partner
+# clears the room.
+# ==========================================
+
+func revive(spawn_position: Vector3) -> void:
+	if not is_dead:
+		return
+
+	global_position = spawn_position
+	velocity = Vector3.ZERO
+	health = 100
+
+	is_dead = false
+	is_jumping = false
+	is_landing = false
+	is_hit = false
+	is_attacking = false
+	is_shielding = false
+	shield_starting = false
+	is_blocking_hit = false
+	is_dodging = false
+	is_pulling_lever = false
+	is_operating_fire_gear = false
+
+	dodge_timer = 0.0
+	dodge_cooldown_timer = 0.0
+	dodge_recovery_timer = 0.0
+	dodge_direction = Vector3.ZERO
+	attack_timer = 0.0
+	lever_current_angle = 0.0
+
+	animation_player.stop()
+	current_animation = ""
+	play_animation(IDLE_ANIMATION)
+
+	print("Player 2 revived with ", health, " health!")
