@@ -1,8 +1,11 @@
+
 extends CharacterBody3D
 
 const WALK_SPEED: float = 2.0
 const RUN_SPEED: float = 4.0
 const JUMP_VELOCITY: float = 4.5
+
+const SPELLCAST_ANIMATION: String = "Rig_Medium_CombatRanged/Ranged_Magic_Spellcasting"
 
 @export var mouse_sensitivity: float = 0.002
 @export var joystick_camera_sensitivity: float = 2.0
@@ -17,8 +20,15 @@ var is_jumping: bool = false
 var is_landing: bool = false
 var is_hit: bool = false
 var is_dead: bool = false
+var is_casting_spell: bool = false
 
+# --------------------------------------------------
+# HEALTH
+# --------------------------------------------------
+
+var max_health: int = 100
 var health: int = 100
+
 var arduino: Variant = null
 
 # Read by the aiming script to trigger the existing projectile system.
@@ -26,12 +36,23 @@ var keyboard_cast_requested: bool = false
 
 
 func _ready() -> void:
-	# Register Player 1 so enemies and the room-clear system can find the Mage.
 	add_to_group("players")
 	add_to_group("player1")
 
 	arduino = ArduinoMage
+
+	# The animation loops only while the Mage is charging.
+	if animation_player.has_animation(SPELLCAST_ANIMATION):
+		var spell_animation: Animation = animation_player.get_animation(
+			SPELLCAST_ANIMATION
+		)
+		spell_animation.loop_mode = Animation.LOOP_LINEAR
+	else:
+		push_warning("Mage spellcasting animation not found: " + SPELLCAST_ANIMATION)
+
 	play_animation("Rig_Medium_General/Idle_A")
+
+	update_health_bar()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -48,6 +69,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	elif event.is_action_pressed("mage_cast_spell"):
 		keyboard_cast_requested = true
+		play_spellcasting_animation()
 		get_viewport().set_input_as_handled()
 
 
@@ -84,8 +106,24 @@ func play_animation(animation_name: String) -> void:
 		current_animation = animation_name
 
 
+func play_spellcasting_animation() -> void:
+	if is_dead or is_hit or is_jumping or is_landing:
+		return
+
+	if not animation_player.has_animation(SPELLCAST_ANIMATION):
+		push_warning("Mage spellcasting animation is unavailable.")
+		return
+
+	is_casting_spell = true
+	play_animation(SPELLCAST_ANIMATION)
+
+
+# Called by Mage Target immediately after the projectile launches.
+func finish_spellcasting() -> void:
+	is_casting_spell = false
+
+
 func _input(event: InputEvent) -> void:
-	# Escape and pausing are handled by the existing pause system.
 	if is_dead or get_tree().paused:
 		return
 
@@ -170,11 +208,9 @@ func _physics_process(delta: float) -> void:
 		joystick_x = float(arduino.joystick_x)
 		joystick_y = float(arduino.joystick_y)
 
-	# Preserve the original Arduino movement mapping.
 	direction.x = -joystick_x
 	direction.z = -joystick_y
 
-	# Keyboard actions come from Project Settings > Input Map.
 	if Input.is_action_pressed("move_forward"):
 		direction.z += 1.0
 
@@ -212,6 +248,7 @@ func _physics_process(delta: float) -> void:
 		and not is_landing
 		and not is_hit
 	):
+		is_casting_spell = false
 		velocity.y = JUMP_VELOCITY
 		is_jumping = true
 		play_animation("Rig_Medium_MovementBasic/Jump_Start")
@@ -228,6 +265,8 @@ func _physics_process(delta: float) -> void:
 	# MOVEMENT SPEED + ANIMATIONS
 	# --------------------------------------------------
 	if direction.length() > 0.0:
+		is_casting_spell = false
+
 		if should_run:
 			velocity.x = direction.x * RUN_SPEED
 			velocity.z = direction.z * RUN_SPEED
@@ -258,7 +297,8 @@ func _physics_process(delta: float) -> void:
 		velocity.z = 0.0
 
 		if not is_jumping and not is_landing and not is_hit:
-			play_animation("Rig_Medium_General/Idle_A")
+			if not is_casting_spell:
+				play_animation("Rig_Medium_General/Idle_A")
 
 	move_and_slide()
 
@@ -268,6 +308,7 @@ func _physics_process(delta: float) -> void:
 	if is_jumping and is_on_floor():
 		is_jumping = false
 		is_landing = true
+		is_casting_spell = false
 		play_animation("Rig_Medium_MovementBasic/Jump_Land")
 
 	if is_landing:
@@ -307,16 +348,26 @@ func _physics_process(delta: float) -> void:
 # --------------------------------------------------
 # HEALTH / DAMAGE
 # --------------------------------------------------
+
 func take_damage(amount: int) -> void:
 	if is_dead or amount <= 0:
 		return
 
 	health = maxi(0, health - amount)
-	print("Player 1 health: ", health)
+
+	update_health_bar()
+
+	print(
+		"Player 1 health: ",
+		health,
+		"/",
+		max_health
+	)
 
 	if health <= 0:
 		is_dead = true
 		is_hit = false
+		is_casting_spell = false
 		is_jumping = false
 		is_landing = false
 		keyboard_cast_requested = false
@@ -331,30 +382,54 @@ func take_damage(amount: int) -> void:
 		return
 
 	is_hit = true
+	is_casting_spell = false
 	play_animation("Rig_Medium_General/Hit_A")
 
 
 # --------------------------------------------------
-# REVIVE
-# Called by the room-clear system when the partner
-# clears the room.
+# HEALTH UI REFRESH
 # --------------------------------------------------
+
+func update_health_bar() -> void:
+	# This method allows the upgrade pedestal to notify
+	# the Mage when maximum or current health changes.
+	#
+	# Add your health bar update code here if your UI
+	# is controlled directly by this player script.
+	pass
+
+
+# --------------------------------------------------
+# REVIVE
+# --------------------------------------------------
+
 func revive(spawn_position: Vector3) -> void:
 	if not is_dead:
 		return
 
 	global_position = spawn_position
 	velocity = Vector3.ZERO
-	health = 100
+
+	# Restore the Mage to her upgraded maximum health.
+	health = max_health
 
 	is_dead = false
 	is_hit = false
 	is_jumping = false
 	is_landing = false
+	is_casting_spell = false
 	keyboard_cast_requested = false
 
 	animation_player.stop()
 	current_animation = ""
 	play_animation("Rig_Medium_General/Idle_A")
 
-	print("Player 1 revived with ", health, " health!")
+	update_health_bar()
+
+	print(
+		"Player 1 revived with ",
+		health,
+		"/",
+		max_health,
+		" health!"
+	)

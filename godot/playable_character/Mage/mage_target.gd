@@ -7,7 +7,7 @@ extends Node3D
 @export var spawn_forward_offset: float = 1.2
 @export var spawn_height_offset: float = 0.8
 
-# Keyboard aiming charge speed
+# Keyboard aiming charge speed.
 @export var keyboard_aim_distance_speed: float = 3.0
 
 var arduino: Variant = null
@@ -35,6 +35,20 @@ func _ready() -> void:
 		push_error("Mage aiming: AimLine node not found.")
 
 
+func _start_spellcasting() -> void:
+	var mage: Node = get_parent()
+
+	if is_instance_valid(mage) and mage.has_method("play_spellcasting_animation"):
+		mage.call("play_spellcasting_animation")
+
+
+func _finish_spellcasting() -> void:
+	var mage: Node = get_parent()
+
+	if is_instance_valid(mage) and mage.has_method("finish_spellcasting"):
+		mage.call("finish_spellcasting")
+
+
 func _process(delta: float) -> void:
 	if not is_instance_valid(arduino):
 		return
@@ -54,6 +68,8 @@ func _process(delta: float) -> void:
 			# Start close to the Mage every time.
 			keyboard_aim_distance = minimum_distance
 			is_charging = false
+
+			_start_spellcasting()
 
 		keyboard_was_aiming = true
 		visible = true
@@ -93,6 +109,9 @@ func _process(delta: float) -> void:
 	var slider_value: float = float(arduino.slider)
 
 	if slider_value < 0.95:
+		if not is_charging:
+			_start_spellcasting()
+
 		is_charging = true
 		visible = true
 
@@ -140,20 +159,24 @@ func _update_aim_visuals(distance: float) -> void:
 func cast_spell() -> void:
 	if projectile_scene == null:
 		push_error("Mage aiming: Projectile scene is not assigned.")
+		_finish_spellcasting()
 		return
 
 	if not is_instance_valid(arduino):
 		push_error("Mage aiming: ArduinoMage is unavailable.")
+		_finish_spellcasting()
 		return
 
 	var mage: Node3D = get_parent() as Node3D
 
 	if not is_instance_valid(mage):
 		push_error("Mage aiming: Parent Mage node not found.")
+		_finish_spellcasting()
 		return
 
 	if not is_instance_valid(circle):
 		push_error("Mage aiming: Circle node is unavailable.")
+		_finish_spellcasting()
 		return
 
 	var target_position: Vector3 = (
@@ -167,6 +190,7 @@ func cast_spell() -> void:
 	if active_scene == null:
 		push_error("Mage aiming: Current scene is unavailable.")
 		projectile.free()
+		_finish_spellcasting()
 		return
 
 	active_scene.add_child(projectile)
@@ -174,6 +198,7 @@ func cast_spell() -> void:
 	if not projectile is Node3D:
 		push_error("Mage aiming: Projectile must be a Node3D.")
 		projectile.queue_free()
+		_finish_spellcasting()
 		return
 
 	var projectile_3d: Node3D = projectile as Node3D
@@ -192,6 +217,7 @@ func cast_spell() -> void:
 	if not spells_value is Array:
 		push_error("Mage aiming: ArduinoMage.spells is not an Array.")
 		projectile.queue_free()
+		_finish_spellcasting()
 		return
 
 	var spells: Array = spells_value
@@ -200,6 +226,7 @@ func cast_spell() -> void:
 	if selected_spell < 0 or selected_spell >= spells.size():
 		push_error("Mage aiming: Selected spell index is invalid.")
 		projectile.queue_free()
+		_finish_spellcasting()
 		return
 
 	var spell_name: String = str(spells[selected_spell])
@@ -212,3 +239,6 @@ func cast_spell() -> void:
 		" | Target: ",
 		target_position
 	)
+
+	# The projectile has launched. Stop the casting animation now.
+	_finish_spellcasting()
