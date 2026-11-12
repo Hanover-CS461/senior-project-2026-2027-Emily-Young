@@ -56,7 +56,9 @@ var attack_animations: Array[String] = [
 func _ready() -> void:
 	current_health = health
 
+	# Register this rogue in both groups.
 	add_to_group("enemies")
+	add_to_group("rogue_room")
 
 	model = get_parent() as Node3D
 
@@ -86,10 +88,8 @@ func _ready() -> void:
 		push_error("Skeleton Rogue: AnimationPlayer not found.")
 		return
 
-	# Find all meshes for the death fade effect.
 	find_visual_meshes(visual_model)
 
-	# Find FightArea in the enemy's ancestor hierarchy.
 	var search_node: Node = self
 
 	while search_node != null:
@@ -108,7 +108,7 @@ func _ready() -> void:
 	velocity = Vector3.ZERO
 	health_changed.emit(current_health, health)
 
-	print("Skeleton Rogue ready. Registered in enemies group.")
+	print("Skeleton Rogue ready. Registered in enemies and rogue_room groups.")
 
 
 func _physics_process(delta: float) -> void:
@@ -425,12 +425,18 @@ func die() -> void:
 
 	velocity = Vector3.ZERO
 
+	# Remove the rogue from the exit's enemy-counting group immediately.
+	remove_from_group("rogue_room")
+
+	print(
+		"Skeleton Rogue defeated! Remaining rogues: ",
+		get_tree().get_nodes_in_group("rogue_room").size()
+	)
+
 	if fight_area != null:
 		fight_area.monitoring = false
 
 	died.emit(self)
-
-	print("Skeleton Rogue defeated!")
 
 	if animation_player.has_animation(death_animation):
 		play_animation(death_animation)
@@ -457,7 +463,6 @@ func fade_out() -> void:
 		queue_free()
 		return
 
-	# Make each mesh material unique before changing transparency.
 	for mesh in visual_meshes:
 		if not is_instance_valid(mesh):
 			continue
@@ -503,7 +508,6 @@ func fade_out() -> void:
 			if material_copy is BaseMaterial3D:
 				material_copy.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 
-	# Gradually fade all mesh materials to transparent.
 	var tween := create_tween()
 	tween.set_parallel(true)
 
