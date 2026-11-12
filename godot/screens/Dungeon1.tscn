@@ -38,6 +38,8 @@
 [ext_resource type="PackedScene" uid="uid://d3nxrwxrjdfup" path="res://models/dungeon_assets/GLB format/pedestal_attack.glb" id="35_hyar7"]
 [ext_resource type="Script" uid="uid://cf17yj0idf5xb" path="res://upgrade_altar.gd" id="36_yrmp0"]
 [ext_resource type="PackedScene" uid="uid://4yiukdbs8tx3" path="res://models/dungeon_assets/GLB format/pedestal_health.glb" id="37_i2vea"]
+[ext_resource type="PackedScene" uid="uid://dh2ankijlxyiq" path="res://models/dungeon_assets/GLB format/room-small-variation.glb" id="39_yrmp0"]
+[ext_resource type="PackedScene" uid="uid://dthvfb7abd52g" path="res://enemies/Skeleton_Warrior.glb" id="40_i2vea"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7dm0k"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -122,15 +124,12 @@ size = Vector3(23.5, 6, 14)
 [node name="Main" type="Node3D" unique_id=1941153417]
 script = ExtResource("1_gm3jy")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1947631280]
-environment = SubResource("Environment_0xm2m")
-
-[node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=1049476715]
-use_collision = true
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="CSGCombiner3D" unique_id=14009123]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=14009123]
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
 shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1947631280]
+environment = SubResource("Environment_0xm2m")
 
 [node name="Player1" type="CharacterBody3D" parent="." unique_id=1822628822 groups=["player1"]]
 transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 1.3603921, 0.10180056, 2.7507029)
@@ -138,6 +137,7 @@ script = ExtResource("2_88ihb")
 
 [node name="Mage" parent="Player1" unique_id=1450532828 instance=ExtResource("3_mkt6u")]
 transform = Transform3D(0.30000004, 0, 0, 0, 0.30000004, 0, 0, 0, 0.30000004, 0, 0, 0)
+script = null
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player1" unique_id=600453214]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0029289837, 0.33496302, 0.027015448)
@@ -264,6 +264,9 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.2
 
 [node name="gate-door4" parent="Dungeon1Map/Minion_Den" unique_id=1393888030 instance=ExtResource("13_mkt6u")]
 transform = Transform3D(-5.8760584e-08, 0, -1.3442855, 0, 1.3442855, 0, 1.3442855, 0, -5.8760584e-08, 9.493376, -0.0052978992, 0.006324768)
+
+[node name="gate-door6" parent="Dungeon1Map/Minion_Den" unique_id=1742753533 instance=ExtResource("13_mkt6u")]
+transform = Transform3D(-1.3810438, 0, 1.2073468e-07, 0, 1.3810438, 0, -1.2073468e-07, 0, -1.3810438, 62.566685, -2.271201, 4.4813004)
 
 [node name="gate-door5" parent="Dungeon1Map/Minion_Den" unique_id=1034057177 instance=ExtResource("13_mkt6u")]
 transform = Transform3D(-5.8760584e-08, 0, -1.3442855, 0, 1.3442855, 0, 1.3442855, 0, -5.8760584e-08, -9.801184, -0.0052978992, 0.006324768)
@@ -473,6 +476,16 @@ script = ExtResource("30_gmn85")
 transform = Transform3D(1.0000001, 0, 0, 0, 1.0000001, 0, 0, 0, 1.0000001, 0.13745165, 2.024964, -0.630003)
 shape = SubResource("BoxShape3D_b3ruh")
 
+[node name="RogueDoor2" parent="RogueRoom" unique_id=243587988 instance=ExtResource("16_h03xv")]
+transform = Transform3D(-0.6700001, 0, -2.9286634e-08, 0, 0.6700001, 0, 2.9286634e-08, 0, -0.6700001, 8.363241, 0.059999943, -2.959795)
+script = ExtResource("30_gmn85")
+
+[node name="DetectionArea" type="Area3D" parent="RogueRoom/RogueDoor2" unique_id=1815011843]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RogueRoom/RogueDoor2/DetectionArea" unique_id=283198932]
+transform = Transform3D(1.0000001, 0, 0, 0, 1.0000001, 0, 0, 0, 1.0000001, 0.13745165, 2.024964, -0.630003)
+shape = SubResource("BoxShape3D_b3ruh")
+
 [node name="ExitGate" parent="RogueRoom" unique_id=1770675326 instance=ExtResource("16_h03xv")]
 transform = Transform3D(0, 0, 0.67, 0, 0.67, 0, -0.67, 0, 0, 4.6, 0.06, 0)
 script = ExtResource("31_hyar7")
@@ -520,3 +533,9 @@ script = ExtResource("36_yrmp0")
 [node name="pedestal_health" parent="." unique_id=1939384498 instance=ExtResource("37_i2vea")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.493343, -1.0267661, 5.0585995)
 script = ExtResource("36_yrmp0")
+
+[node name="room-small-variation2" parent="." unique_id=1043217112 instance=ExtResource("39_yrmp0")]
+transform = Transform3D(0.5382183, 0, 0, 0, 0.5382183, 0, 0, 0, 0.5382183, 32.625366, -1.0431428, -3.2254543)
+
+[node name="Skeleton_Warrior" parent="." unique_id=2059302717 instance=ExtResource("40_i2vea")]
+transform = Transform3D(0.5753254, 0, 0, 0, 0.5753254, 0, 0, 0, 0.5753254, 1.7115499, 0.112526715, 1.1567714)
