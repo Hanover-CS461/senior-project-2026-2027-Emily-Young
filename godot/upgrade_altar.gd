@@ -6,25 +6,12 @@ extends Node3D
 # ============================================================
 
 @export_group("Upgrade")
-@export_enum("Vitality", "Power", "Arsenal")
+@export_enum("Vitality", "Power")
 var upgrade_type: String = "Vitality"
 
 @export_group("Upgrade Settings")
 @export var max_health_bonus: float = 50.0
 @export var damage_multiplier: float = 1.25
-@export var also_grant_weapon: bool = false
-
-@export var weapon_scene_player1: PackedScene
-@export var weapon_scene_player2: PackedScene
-
-@export var weapon_bone_names: Array[String] = [
-	"handslot.r",
-	"handslot.l",
-	"hand.r"
-]
-
-@export var weapon_position: Vector3 = Vector3.ZERO
-@export var weapon_rotation_degrees: Vector3 = Vector3.ZERO
 
 @export_group("Detection")
 @export var detection_size: Vector3 = Vector3(2.5, 2.5, 2.5)
@@ -36,6 +23,7 @@ var upgrade_type: String = "Vitality"
 @export var float_emblem: bool = true
 @export var float_height: float = 0.12
 @export var float_speed: float = 2.0
+
 
 # ============================================================
 # UPGRADE PROPERTY NAMES
@@ -73,6 +61,7 @@ const REFRESH_METHODS: Array[String] = [
 	"refresh_health"
 ]
 
+
 # ============================================================
 # VARIABLES
 # ============================================================
@@ -100,6 +89,9 @@ var all_done: bool = false
 func _ready() -> void:
 	add_to_group("upgrade_pads")
 
+	# Determine the correct upgrade from the pedestal name.
+	configure_upgrade_type_from_name()
+
 	emblem = find_child("Emblem", true, false) as Node3D
 	glow = find_child("Glow", true, false) as Light3D
 	label = find_child("Label3D", true, false) as Label3D
@@ -115,6 +107,40 @@ func _ready() -> void:
 
 	create_detection_area()
 	refresh_visual()
+
+	print(
+		"Upgrade pedestal ready: ",
+		name,
+		" | Type: ",
+		upgrade_type
+	)
+
+
+# ============================================================
+# AUTOMATIC UPGRADE TYPE
+# ============================================================
+
+func configure_upgrade_type_from_name() -> void:
+	var pedestal_name: String = name.to_lower()
+
+	if (
+		pedestal_name.contains("attack")
+		or pedestal_name.contains("power")
+	):
+		upgrade_type = "Power"
+
+	elif (
+		pedestal_name.contains("health")
+		or pedestal_name.contains("vitality")
+	):
+		upgrade_type = "Vitality"
+
+	print(
+		"Pedestal ",
+		name,
+		" configured as ",
+		upgrade_type
+	)
 
 
 # ============================================================
@@ -341,11 +367,10 @@ func apply_upgrade(player: Node3D) -> void:
 		"Power":
 			apply_power(player)
 
-			if also_grant_weapon:
-				apply_arsenal(player)
-
-		"Arsenal":
-			apply_arsenal(player)
+		_:
+			push_warning(
+				"Unknown upgrade type on " + name
+			)
 
 
 # ============================================================
@@ -353,51 +378,62 @@ func apply_upgrade(player: Node3D) -> void:
 # ============================================================
 
 func apply_vitality(player: Node) -> void:
-	var max_prop: String = find_property(player, MAX_HEALTH_NAMES)
-	var health_prop: String = find_property(player, HEALTH_NAMES)
+	var max_prop: String = find_property(
+		player,
+		MAX_HEALTH_NAMES
+	)
 
-	if max_prop == "" and health_prop == "":
+	var health_prop: String = find_property(
+		player,
+		HEALTH_NAMES
+	)
+
+	if max_prop == "":
 		push_warning(
-			"Vitality upgrade: No health property found on "
+			"Vitality upgrade: "
 			+ player.name
+			+ " does not have a maximum health property."
 		)
 
 		popup(
 			player,
-			"+%d MAX HEALTH" % int(max_health_bonus),
+			"MAX HEALTH PROPERTY MISSING",
 			Color(1.0, 0.4, 0.45)
 		)
 		return
 
-	var new_max: float = 0.0
+	var old_max = player.get(max_prop)
 
-	if max_prop != "":
-		var old_max = player.get(max_prop)
-		new_max = float(old_max) + max_health_bonus
+	if not (old_max is int or old_max is float):
+		push_warning("Vitality: Maximum health property is not numeric.")
+		return
 
-		player.set(
-			max_prop,
-			cast_like(old_max, new_max)
-		)
+	var new_max: float = float(old_max) + max_health_bonus
 
+	player.set(
+		max_prop,
+		cast_like(old_max, new_max)
+	)
+
+	# Restore the player to their new maximum health.
 	if health_prop != "":
 		var old_health = player.get(health_prop)
 
-		if max_prop != "":
+		if old_health is int or old_health is float:
 			player.set(
 				health_prop,
 				cast_like(old_health, new_max)
 			)
-		else:
-			player.set(
-				health_prop,
-				cast_like(
-					old_health,
-					float(old_health) + max_health_bonus
-				)
-			)
 
 	notify_player(player)
+
+	print(
+		player.name,
+		" maximum health increased from ",
+		old_max,
+		" to ",
+		new_max
+	)
 
 	popup(
 		player,
@@ -418,12 +454,13 @@ func apply_power(player: Node) -> void:
 			var old_value = player.get(property_name)
 
 			if old_value is int or old_value is float:
+				var new_value: float = (
+					float(old_value) * damage_multiplier
+				)
+
 				player.set(
 					property_name,
-					cast_like(
-						old_value,
-						float(old_value) * damage_multiplier
-					)
+					cast_like(old_value, new_value)
 				)
 
 				boosted += 1
@@ -438,38 +475,16 @@ func apply_power(player: Node) -> void:
 		round((damage_multiplier - 1.0) * 100.0)
 	)
 
+	print(
+		player.name,
+		" received the Power upgrade. Properties boosted: ",
+		boosted
+	)
+
 	popup(
 		player,
 		"+%d%% DAMAGE" % bonus_percent,
 		Color(1.0, 0.7, 0.25)
-	)
-
-
-# ============================================================
-# ARSENAL
-# ============================================================
-
-func apply_arsenal(player: Node3D) -> void:
-	var is_player1: bool = player.is_in_group("player1")
-
-	var weapon_id: String = (
-		"arcane_staff" if is_player1 else "knight_sword"
-	)
-
-	if player.has_method("equip_weapon"):
-		player.call("equip_weapon", weapon_id)
-
-	if property_exists(player, "has_weapon"):
-		player.set("has_weapon", true)
-
-	player.set_meta("weapon", weapon_id)
-
-	attach_weapon(player, weapon_id, is_player1)
-
-	popup(
-		player,
-		"ARCANE STAFF" if is_player1 else "KNIGHT'S BLADE",
-		Color(0.45, 0.75, 1.0)
 	)
 
 
@@ -625,182 +640,3 @@ func refresh_visual() -> void:
 
 		if is_instance_valid(label):
 			label.modulate = Color(0.6, 0.6, 0.6, 1)
-
-
-# ============================================================
-# WEAPON ATTACHMENT
-# ============================================================
-
-func attach_weapon(
-	player: Node3D,
-	weapon_id: String,
-	is_player1: bool
-) -> void:
-	var attach_to: Node3D = null
-
-	var skeletons = player.find_children(
-		"*",
-		"Skeleton3D",
-		true,
-		false
-	)
-
-	if skeletons.size() > 0:
-		var skeleton: Skeleton3D = skeletons[0]
-
-		for bone_name in weapon_bone_names:
-			if skeleton.find_bone(bone_name) != -1:
-				var attachment := BoneAttachment3D.new()
-
-				attachment.name = "UpgradeWeapon"
-				skeleton.add_child(attachment)
-				attachment.bone_name = bone_name
-
-				attach_to = attachment
-				break
-
-	if attach_to == null:
-		push_warning(
-			"Upgrade pedestal: No hand bone found on "
-			+ player.name
-			+ ". Attaching weapon to player root."
-		)
-
-		attach_to = player
-
-	var scene: PackedScene = (
-		weapon_scene_player1 if is_player1
-		else weapon_scene_player2
-	)
-
-	var weapon: Node3D
-
-	if scene != null:
-		weapon = scene.instantiate() as Node3D
-	else:
-		weapon = build_placeholder_weapon(weapon_id)
-
-	if not is_instance_valid(weapon):
-		push_warning("Upgrade pedestal: Weapon scene root must be Node3D.")
-		return
-
-	weapon.position = weapon_position
-	weapon.rotation_degrees = weapon_rotation_degrees
-
-	attach_to.add_child(weapon)
-
-
-# ============================================================
-# PLACEHOLDER WEAPON VISUALS
-# ============================================================
-
-func make_material(
-	color: Color,
-	metallic: float = 0.0,
-	emission: bool = false
-) -> StandardMaterial3D:
-	var material := StandardMaterial3D.new()
-
-	material.albedo_color = color
-	material.metallic = metallic
-	material.roughness = 0.4
-
-	if emission:
-		material.emission_enabled = true
-		material.emission = color
-		material.emission_energy_multiplier = 3.0
-
-	return material
-
-
-func add_mesh(
-	parent: Node3D,
-	mesh: Mesh,
-	material: Material,
-	position: Vector3
-) -> void:
-	var instance := MeshInstance3D.new()
-
-	instance.mesh = mesh
-	instance.material_override = material
-	instance.position = position
-
-	parent.add_child(instance)
-
-
-func build_placeholder_weapon(weapon_id: String) -> Node3D:
-	var root := Node3D.new()
-	root.name = "PlaceholderWeapon"
-
-	if weapon_id == "arcane_staff":
-		var shaft := CylinderMesh.new()
-
-		shaft.top_radius = 0.04
-		shaft.bottom_radius = 0.04
-		shaft.height = 1.6
-
-		add_mesh(
-			root,
-			shaft,
-			make_material(Color(0.35, 0.22, 0.12)),
-			Vector3(0, 0.5, 0)
-		)
-
-		var orb := SphereMesh.new()
-
-		orb.radius = 0.13
-		orb.height = 0.26
-
-		add_mesh(
-			root,
-			orb,
-			make_material(Color(0.4, 0.8, 1.0), 0.0, true),
-			Vector3(0, 1.38, 0)
-		)
-
-		var light := OmniLight3D.new()
-
-		light.light_color = Color(0.4, 0.8, 1.0)
-		light.omni_range = 2.0
-		light.light_energy = 1.0
-		light.position = Vector3(0, 1.38, 0)
-
-		root.add_child(light)
-
-	else:
-		var blade := BoxMesh.new()
-
-		blade.size = Vector3(0.1, 1.0, 0.03)
-
-		add_mesh(
-			root,
-			blade,
-			make_material(Color(0.8, 0.85, 0.9), 0.9),
-			Vector3(0, 0.65, 0)
-		)
-
-		var guard := BoxMesh.new()
-
-		guard.size = Vector3(0.34, 0.06, 0.08)
-
-		add_mesh(
-			root,
-			guard,
-			make_material(Color(0.85, 0.65, 0.2), 0.8),
-			Vector3(0, 0.12, 0)
-		)
-
-		var grip := CylinderMesh.new()
-
-		grip.top_radius = 0.035
-		grip.bottom_radius = 0.035
-		grip.height = 0.25
-
-		add_mesh(
-			root,
-			grip,
-			make_material(Color(0.25, 0.15, 0.1)),
-			Vector3(0, -0.03, 0)
-		)
-
-	return root

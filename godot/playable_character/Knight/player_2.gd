@@ -40,6 +40,9 @@ var is_jumping: bool = false
 var is_landing: bool = false
 var is_hit: bool = false
 var is_dead: bool = false
+
+# Health
+var max_health: int = 100
 var health: int = 100
 
 var attack_damage: int = 20
@@ -80,6 +83,8 @@ func _ready() -> void:
 	add_to_group("player2")
 
 	play_animation(IDLE_ANIMATION)
+	update_health_bar()
+
 	print("Knight: Waiting for the dungeon and Ice Shrine.")
 
 	await get_tree().process_frame
@@ -98,6 +103,17 @@ func _ready() -> void:
 			break
 
 		await get_tree().create_timer(0.5, true, false, true).timeout
+
+
+# ==========================================
+# HEALTH UI REFRESH
+# ==========================================
+
+func update_health_bar() -> void:
+	# Placeholder for your health UI.
+	# The upgrade altar can call this method after
+	# changing maximum or current health.
+	pass
 
 
 # ==========================================
@@ -963,7 +979,9 @@ func take_damage(amount: int) -> void:
 		return
 
 	health = maxi(0, health - amount)
-	print("Knight health: ", health)
+	update_health_bar()
+
+	print("Knight health: ", health, "/", max_health)
 
 	if health <= 0:
 		is_dead = true
@@ -1021,7 +1039,9 @@ func revive(spawn_position: Vector3) -> void:
 
 	global_position = spawn_position
 	velocity = Vector3.ZERO
-	health = 100
+
+	# Restore the Knight to his upgraded maximum health.
+	health = max_health
 
 	is_dead = false
 	is_jumping = false
@@ -1046,4 +1066,12 @@ func revive(spawn_position: Vector3) -> void:
 	current_animation = ""
 	play_animation(IDLE_ANIMATION)
 
-	print("Player 2 revived with ", health, " health!")
+	update_health_bar()
+
+	print(
+		"Player 2 revived with ",
+		health,
+		"/",
+		max_health,
+		" health!"
+	)
