@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://bq1nog2nae5nv"]
+
+[ext_resource type="PackedScene" uid="uid://126vl0m2xk50" path="res://models/dungeon_assets/GLB format/gate-metal-bars.glb" id="1_i5f07"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7anak"]
+size = Vector3(6.2751465, 3.1220703, 2.2911377)
+
+[node name="gate-metal-bars2" unique_id=10281909 instance=ExtResource("1_i5f07")]
+
+[node name="DetectionArea" type="Area3D" parent="." index="1" unique_id=992663655]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4183655, 1.618103, -0.70788574)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DetectionArea" index="0" unique_id=203950261]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5074463, 1.0610352, 0.64556885)
+shape = SubResource("BoxShape3D_7anak")

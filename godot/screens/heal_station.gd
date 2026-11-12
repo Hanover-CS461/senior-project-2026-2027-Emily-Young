@@ -1,23 +1,17 @@
+
 extends Area3D
 ## HEAL STATION - the Damaged Guardian.
 ##
-##   Stage 1 (Knight): stand by the guardian and press interact  -> it AWAKENS   (station "in progress")
-##   Stage 2 (Mage):   cast Heal at the guardian                  -> its core is HEALED (station complete)
-##
-## Follows the same pattern as fire_station.gd / ice_shrine.gd:
-##   finds PuzzleController + the imported guardian visuals by name, calls
-##   set_station_in_progress(station_id) then complete_station(station_id).
+## Stage 1 (Knight): interact nearby to awaken the guardian.
+## Stage 2 (Mage): cast Heal at the guardian to complete the station.
 
 signal guardian_awakened
 signal guardian_healed
 
 enum State { DORMANT, AWAKENED, HEALED }
 
-## Must match the name your PuzzleController uses for this station ("fire" and "ice" are used already).
 @export var station_id: String = "heal"
-## How many Heal casts it takes to finish (1 = a single cast heals it).
 @export_range(1, 10) var heal_pulses_required: int = 1
-## Also light Seal_Symbol_Heal / Gate_Symbol_Heal / Conduit_Heal when healed (safe if puzzle_room.gd does it too).
 @export var light_heal_symbols: bool = true
 
 @export_group("Glow levels (emission energy)")
@@ -41,10 +35,8 @@ enum State { DORMANT, AWAKENED, HEALED }
 @export var breathing_speed: float = 1.4
 
 @export_group("Optional")
-## Show "Awaken the guardian" through the Virelune HUD if one exists (does nothing otherwise).
 @export var use_hud_prompts: bool = false
 @export var prompt_input_hint: String = "SLASH"
-## Testing without both players: F7 = awaken, F8 = heal. Turn off for the real game.
 @export var debug_hotkeys: bool = false
 
 const CORE_COLOR := Color(0.21, 1.0, 0.6)
@@ -76,11 +68,9 @@ var _head_base_rotation: Vector3 = Vector3.ZERO
 var _body_base_y: float = 0.0
 var _tween: Tween = null
 var _time: float = 0.0
-var _prev_key: bool = false
-var _prev_pad: bool = false
-var _last_spell_frame: int = -1
 
-## 0 = dormant, 1 = awakened, 2 = healed. Tweened so the change eases in.
+
+## 0 = dormant, 1 = awakened, 2 = healed.
 var _progress: float = 0.0:
 	set(value):
 		_progress = value
@@ -88,14 +78,12 @@ var _progress: float = 0.0:
 
 
 func _ready() -> void:
+	add_to_group("heal_station")
 	print("DEBUG: Heal Station ready.")
 
 	monitoring = true
 	for layer in range(1, 33):
 		set_collision_mask_value(layer, true)
-
-	# Run BEFORE other stations' _process so a controller press is not consumed by fire_gear_interaction.gd first.
-	process_priority = -10
 
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
@@ -103,8 +91,6 @@ func _ready() -> void:
 	_puzzle_room = _find_puzzle_room()
 	_find_nodes()
 	_prepare_materials()
-
-	# The guardian starts dormant and dim.
 	_apply_visuals(0.0)
 
 	if puzzle_controller == null:
@@ -121,7 +107,6 @@ func _ready() -> void:
 # ==========================================
 
 func _find_puzzle_room() -> Node:
-	# Walk up until we reach the node that contains the imported guardian.
 	var n: Node = get_parent()
 	while n != null:
 		if n.find_child("Guardian_Core", true, false) != null:
@@ -132,6 +117,9 @@ func _find_puzzle_room() -> Node:
 
 func _find_nodes() -> void:
 	var room: Node = _puzzle_room
+	if room == null:
+		return
+
 	puzzle_controller = room.get_node_or_null("PuzzleController")
 	if puzzle_controller == null:
 		puzzle_controller = get_tree().root.find_child("PuzzleController", true, false)
@@ -167,11 +155,10 @@ func _prepare_materials() -> void:
 		_collect("crystals", c)
 
 
-## Gives every mesh under `node` its own copy of its material, so this station can
-## change the glow without touching other objects that share the imported material.
 func _collect(group: String, node: Node) -> void:
 	if node == null:
 		return
+
 	var stack: Array = [node]
 	while not stack.is_empty():
 		var n: Node = stack.pop_back()
@@ -181,10 +168,11 @@ func _collect(group: String, node: Node) -> void:
 				for i in range(mi.mesh.get_surface_count()):
 					var original: Material = mi.get_active_material(i)
 					if original is StandardMaterial3D:
-						var copy: StandardMaterial3D = (original as StandardMaterial3D).duplicate() as StandardMaterial3D
+						var copy := (original as StandardMaterial3D).duplicate() as StandardMaterial3D
 						copy.emission_enabled = true
 						mi.set_surface_override_material(i, copy)
 						_mats[group].append(copy)
+
 		for child in n.get_children():
 			stack.append(child)
 
@@ -199,6 +187,7 @@ func _check_missing_visuals() -> void:
 	if _body == null: missing.append("Guardian_Body")
 	if _light == null: missing.append("Guardian_Light")
 	if _crystals.size() < 3: missing.append("Guardian_Crystal_1..3")
+
 	if missing.is_empty():
 		print("DEBUG: All Heal Station visuals found.")
 	else:
@@ -235,7 +224,6 @@ func _apply_visuals(p: float) -> void:
 		_light.light_energy = _light_base * factor
 		_light.visible = factor > 0.01
 
-	# The guardian slowly lifts its head as it wakes (starts bowed).
 	if is_instance_valid(_head):
 		var bow: float = _blend(1.0, 0.55, 0.0, p)
 		_head.rotation = _head_base_rotation * bow
@@ -244,28 +232,37 @@ func _apply_visuals(p: float) -> void:
 func _go_to(target: float) -> void:
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
+
 	_tween = create_tween()
-	_tween.tween_property(self, "_progress", target, transition_seconds).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_tween.tween_property(
+		self,
+		"_progress",
+		target,
+		transition_seconds
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
 func _light_heal_symbols() -> void:
+	if _puzzle_room == null:
+		return
+
 	for node_name in ["Seal_Symbol_Heal", "Gate_Symbol_Heal", "Conduit_Heal"]:
 		var n: Node = _puzzle_room.find_child(node_name, true, false)
 		if n == null:
 			push_warning("Heal Station: could not find " + node_name)
 			continue
 		_collect("symbols", n)
+
 	_set_glow("symbols", SYMBOL_COLOR, symbols_lit)
 
 
 # ==========================================
-# MOTION
+# MOTION / DEBUG
 # ==========================================
 
 func _process(delta: float) -> void:
 	_time += delta
 
-	# The awake guardian "breathes" with a tiny bob.
 	if state != State.DORMANT and is_instance_valid(_body):
 		var strength: float = 0.5 if state == State.AWAKENED else 1.0
 		_body.position.y = _body_base_y + sin(_time * breathing_speed) * breathing_height * strength
@@ -278,44 +275,44 @@ func _process(delta: float) -> void:
 				awaken()
 			heal_guardian()
 
-	if _read_interact_pressed() and knight_in_range:
-		_try_knight_awaken()
-
 
 # ==========================================
 # STAGE 1: KNIGHT AWAKENS THE GUARDIAN
 # ==========================================
 
-func _read_interact_pressed() -> bool:
-	var key_down: bool = Input.is_key_pressed(KEY_SLASH)
-	var key_pressed: bool = key_down and not _prev_key
-	_prev_key = key_down
+func handle_knight_interaction(interacting_knight: Node) -> bool:
+	if not is_instance_valid(interacting_knight):
+		return false
 
-	var pad_down: bool = false
-	var arduino: Node = get_node_or_null("/root/ArduinoKnight")
-	if arduino != null:
-		pad_down = arduino.get("interact_pressed") == true
-	var pad_pressed: bool = pad_down and not _prev_pad
-	_prev_pad = pad_down
+	if not interacting_knight.is_in_group("player2"):
+		return false
 
-	# Only consume the controller press if we are actually the one using it.
-	if pad_pressed and knight_in_range and arduino != null:
-		arduino.set("interact_pressed", false)
+	var overlapping: Array[Node3D] = get_overlapping_bodies()
+	if not knight_in_range and not overlapping.has(interacting_knight):
+		return false
 
-	return key_pressed or pad_pressed
+	knight = interacting_knight as CharacterBody3D
+	knight_in_range = true
+
+	_try_knight_awaken()
+	return true
 
 
 func _try_knight_awaken() -> void:
 	if not is_instance_valid(knight):
 		return
+
 	if knight.get("is_dead") == true:
 		return
+
 	if state == State.HEALED:
 		print("Heal Station: The guardian is already healed.")
 		return
+
 	if state == State.AWAKENED:
 		print("Heal Station: The guardian is already awake. The Mage must heal it!")
 		return
+
 	awaken()
 
 
@@ -356,12 +353,6 @@ func receive_spell(spell_name: String) -> void:
 		print("DEBUG: The guardian needs Heal, not ", spell_name)
 		return
 
-	# If both this Area and a HealSpellTarget forward the same cast, count it once.
-	var frame: int = Engine.get_physics_frames()
-	if frame == _last_spell_frame:
-		return
-	_last_spell_frame = frame
-
 	heal_guardian()
 
 
@@ -379,7 +370,6 @@ func heal_guardian() -> void:
 	heals_received += 1
 
 	if heals_received < heal_pulses_required:
-		# Partial progress: the glow builds with each cast.
 		var partial: float = 1.0 + float(heals_received) / float(heal_pulses_required)
 		_go_to(minf(partial, 1.95))
 		print("The guardian's core flickers... (", heals_received, "/", heal_pulses_required, ")")
@@ -396,7 +386,6 @@ func heal_guardian() -> void:
 	state = State.HEALED
 	_go_to(2.0)
 
-	# Complete the station first so the room receives its signal.
 	puzzle_controller.complete_station(station_id)
 
 	if light_heal_symbols:
@@ -417,8 +406,16 @@ func _on_body_entered(body: Node3D) -> void:
 		knight_in_range = true
 		knight = body as CharacterBody3D
 		print("Heal Station: Knight detected in range.")
+
 		if use_hud_prompts and state == State.DORMANT:
-			get_tree().call_group("virelune_hud", "show_prompt", 2, "Healing", "Awaken the guardian", prompt_input_hint)
+			get_tree().call_group(
+				"virelune_hud",
+				"show_prompt",
+				2,
+				"Healing",
+				"Awaken the guardian",
+				prompt_input_hint
+			)
 
 
 func _on_body_exited(body: Node3D) -> void:

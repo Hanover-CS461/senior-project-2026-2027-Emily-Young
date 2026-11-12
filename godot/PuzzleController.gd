@@ -122,7 +122,9 @@ func unlock_gate() -> void:
 		return
 
 	if not seal_is_complete:
-		push_warning("The Ancient Gate cannot unlock before the Threefold Seal.")
+		push_warning(
+			"The Ancient Gate cannot unlock before the Threefold Seal."
+		)
 		return
 
 	gate_is_unlocked = true

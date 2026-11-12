@@ -41,6 +41,9 @@ materials/extract_format=0
 materials/extract_path=""
 _subresources={
 "nodes": {
+"PATH:Virelune_AncientSeal_Room/Ancient_Gate/Gate_Alcove": {
+"import/skip_import": true
+},
 "PATH:Virelune_AncientSeal_Room/Ancient_Gate/Gate_Door_L": {
 "generate/physics": true
 },
@@ -49,6 +52,9 @@ _subresources={
 },
 "PATH:Virelune_AncientSeal_Room/Ancient_Gate/Gate_Frame": {
 "generate/physics": true
+},
+"PATH:Virelune_AncientSeal_Room/Ancient_Gate/Gate_Glow": {
+"import/skip_import": true
 },
 "PATH:Virelune_AncientSeal_Room/Ancient_Gate/Gate_Hinge_L": {
 "generate/physics": true
@@ -265,6 +271,10 @@ _subresources={
 },
 "PATH:Virelune_AncientSeal_Room/Room_Architecture/Columns/Column_W_20": {
 "generate/physics": true
+},
+"PATH:Virelune_AncientSeal_Room/Room_Architecture/Details/Entrance": {
+"generate/physics": true,
+"import/skip_import": true
 },
 "PATH:Virelune_AncientSeal_Room/Room_Architecture/Floor/Floor_Flagstones": {
 "generate/physics": true

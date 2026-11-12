@@ -1,4 +1,3 @@
-
 extends CharacterBody3D
 
 const WALK_SPEED: float = 2.0
@@ -27,8 +26,9 @@ var keyboard_cast_requested: bool = false
 
 
 func _ready() -> void:
-	# Register Player 1 so the gate can find and revive the Mage.
+	# Register Player 1 so enemies and the room-clear system can find the Mage.
 	add_to_group("players")
+	add_to_group("player1")
 
 	arduino = ArduinoMage
 	play_animation("Rig_Medium_General/Idle_A")

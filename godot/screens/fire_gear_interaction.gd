@@ -23,7 +23,6 @@ var fire_station: Node = null
 var puzzle_controller: Node = null
 
 var starting_gear_angle: float = 0.0
-var previous_keyboard_state: bool = false
 var previous_controller_state: bool = false
 
 
@@ -64,12 +63,12 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	var keyboard_down: bool = Input.is_key_pressed(KEY_E)
-	var keyboard_pressed: bool = (
-		keyboard_down and not previous_keyboard_state
+	# Keyboard interaction.
+	var keyboard_pressed: bool = Input.is_action_just_pressed(
+		"p2_interact"
 	)
-	previous_keyboard_state = keyboard_down
 
+	# Arduino interaction.
 	var controller_down: bool = false
 
 	if is_instance_valid(ArduinoKnight):
@@ -78,6 +77,7 @@ func _process(delta: float) -> void:
 	var controller_pressed: bool = (
 		controller_down and not previous_controller_state
 	)
+
 	previous_controller_state = controller_down
 
 	if controller_pressed:
@@ -87,6 +87,7 @@ func _process(delta: float) -> void:
 		keyboard_pressed or controller_pressed
 	)
 
+	# Exit gear mode if interaction is pressed again.
 	if operating:
 		if not is_instance_valid(knight):
 			operating = false
@@ -99,6 +100,7 @@ func _process(delta: float) -> void:
 
 		return
 
+	# Check whether the Knight can enter gear mode.
 	if not interact_requested or not knight_in_range:
 		return
 
@@ -145,7 +147,7 @@ func enter_gear_mode() -> void:
 	knight.global_rotation.y = stand_position.global_rotation.y
 	knight.velocity = Vector3.ZERO
 
-	# Explicitly start the Knight's operating mode.
+	# Start the Knight's operating mode.
 	if knight.has_method("start_fire_gear_mode"):
 		knight.call("start_fire_gear_mode")
 	else:
@@ -171,8 +173,19 @@ func control_gear(delta: float) -> void:
 
 	var movement: Vector2 = Vector2.ZERO
 
+	# Arduino joystick input.
 	if is_instance_valid(ArduinoKnight):
 		movement = ArduinoKnight.get_movement()
+
+	# Keyboard rotation input.
+	var keyboard_rotation: float = (
+		float(Input.is_action_pressed("p2_right"))
+		- float(Input.is_action_pressed("p2_left"))
+	)
+
+	# Combine keyboard and controller input.
+	movement.x += keyboard_rotation
+	movement.x = clampf(movement.x, -1.0, 1.0)
 
 	if abs(movement.x) > joystick_dead_zone:
 		fire_gear.rotate_object_local(

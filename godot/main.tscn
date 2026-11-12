@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://bpxvsjdlsbu2" path="res://playable_character/Mage/mage.tscn" id="11_efxa6"]
 [ext_resource type="Script" uid="uid://dufvuvy5to3ii" path="res://playable_character/Knight/player_2.gd" id="13_w48qg"]
 [ext_resource type="PackedScene" path="res://pause_menu/pause_menu.tscn" id="13_ycdy4"]
+[ext_resource type="Script" uid="uid://bkpsm3h7vg8m5" path="res://player_hud.gd" id="14_vivmo"]
 [ext_resource type="PackedScene" uid="uid://j5lk4xmfrr65" path="res://playable_character/Knight/knight.tscn" id="14_w48qg"]
 [ext_resource type="PackedScene" uid="uid://chtkimjeg1n31" path="res://Virelune_DelversHollow.glb" id="34_0rl1p"]
 [ext_resource type="PackedScene" uid="uid://bf857op33rnd" path="res://playable_character/barbarian/barbarian.tscn" id="34_4k2k6"]
@@ -137,3 +138,6 @@ shape = SubResource("SphereShape3D_d87lq")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.7144527, 2.3841858e-07, 1.4536278)
 
 [node name="PauseMenu" parent="." unique_id=756505157 instance=ExtResource("13_ycdy4")]
+
+[node name="PlayerHUD" type="CanvasLayer" parent="." unique_id=1302776366]
+script = ExtResource("14_vivmo")

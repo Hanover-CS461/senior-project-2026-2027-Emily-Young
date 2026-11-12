@@ -77,6 +77,7 @@ var lever_current_angle: float = 0.0
 
 func _ready() -> void:
 	add_to_group("players")
+	add_to_group("player2")
 
 	play_animation(IDLE_ANIMATION)
 	print("Knight: Waiting for the dungeon and Ice Shrine.")
@@ -281,6 +282,12 @@ func interaction_just_pressed() -> bool:
 
 func handle_interaction() -> void:
 	print("Knight: Player 2 interaction detected!")
+
+	# Try the Healing Station before checking the Ice Shrine.
+	for station: Node in get_tree().get_nodes_in_group("heal_station"):
+		if station.has_method("handle_knight_interaction"):
+			if station.call("handle_knight_interaction", self):
+				return
 
 	if (
 		not is_instance_valid(water_inlet_interaction)
@@ -523,7 +530,6 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
-	# FIX: Clear the hit state after the hit animation finishes.
 	if is_hit:
 		if (
 			animation_player.current_animation != HIT_ANIMATION
@@ -587,7 +593,6 @@ func _physics_process(delta: float) -> void:
 
 		return
 
-	# Check whether dodge is allowed BEFORE consuming the controller press.
 	if (
 		dodge_cooldown_timer <= 0.0
 		and not is_jumping
@@ -603,7 +608,6 @@ func _physics_process(delta: float) -> void:
 	if attack_timer > 0.0:
 		attack_timer -= delta
 
-	# Shield
 	var shield_held: bool = is_shield_held()
 
 	if (
@@ -645,7 +649,6 @@ func _physics_process(delta: float) -> void:
 			shield_starting = false
 			is_blocking_hit = false
 
-	# Shield hit animation
 	if is_blocking_hit:
 		if animation_player.current_animation != SHIELD_HIT_ANIMATION:
 			is_blocking_hit = false
@@ -663,7 +666,6 @@ func _physics_process(delta: float) -> void:
 				is_shielding = false
 				shield_starting = false
 
-	# Attack input
 	var controller_attack: bool = false
 
 	if is_instance_valid(arduino_knight):
@@ -685,7 +687,6 @@ func _physics_process(delta: float) -> void:
 		attack()
 		return
 
-	# Attack animation and damage
 	if is_attacking:
 		var attack_length: float = animation_player.current_animation_length
 		var attack_position: float = animation_player.current_animation_position
@@ -728,7 +729,6 @@ func _physics_process(delta: float) -> void:
 
 		return
 
-	# Camera: keyboard and Arduino
 	var look: Vector2 = get_combined_look()
 
 	if look.length() > 0.0:
@@ -742,11 +742,9 @@ func _physics_process(delta: float) -> void:
 			camera_pivot.rotation.x, -0.4, 0.4
 		)
 
-	# Gravity
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 
-	# Movement: keyboard and Arduino
 	var joystick: Vector2 = get_combined_movement()
 	var direction: Vector3 = Vector3.ZERO
 
@@ -758,7 +756,6 @@ func _physics_process(delta: float) -> void:
 		direction.y = 0.0
 		direction = direction.normalized()
 
-	# Jump
 	var jump_requested: bool = Input.is_action_just_pressed("p2_jump")
 
 	if is_instance_valid(arduino_knight):
@@ -777,7 +774,6 @@ func _physics_process(delta: float) -> void:
 		is_jumping = true
 		play_animation("Rig_Medium_MovementBasic/Jump_Start")
 
-	# Movement speed and animations
 	if direction.length() > 0.0:
 		var sprinting: bool = is_sprinting()
 
@@ -823,7 +819,6 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-	# Landing
 	if is_jumping and is_on_floor():
 		is_jumping = false
 		is_landing = true
@@ -1004,13 +999,11 @@ func take_damage(amount: int) -> void:
 		print("Player 2 defeated! Waiting for revival.")
 		return
 
-	# Play the hit animation only if it exists.
 	if animation_player.has_animation(HIT_ANIMATION):
 		is_hit = true
 		animation_player.play(HIT_ANIMATION)
 		current_animation = HIT_ANIMATION
 	else:
-		# Don't leave the Knight locked in the hit state if missing.
 		is_hit = false
 		current_animation = ""
 		push_warning(
@@ -1020,8 +1013,6 @@ func take_damage(amount: int) -> void:
 
 # ==========================================
 # REVIVE
-# Called by the room-clear system when the partner
-# clears the room.
 # ==========================================
 
 func revive(spawn_position: Vector3) -> void:
