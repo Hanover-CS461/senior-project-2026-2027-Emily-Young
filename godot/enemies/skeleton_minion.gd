@@ -1,3 +1,4 @@
+
 extends CharacterBody3D
 
 
@@ -35,8 +36,16 @@ var skeleton_meshes = []
 var fight_started = false
 var is_awakening = false
 
+# Dual-wield attack animations
+var attack_animations = [
+	"Rig_Medium_CombatMelee/Melee_Dualwield_Attack_Slice",
+	"Rig_Medium_CombatMelee/Melee_Dualwield_Attack_Stab"
+]
+
 
 func _ready():
+
+	randomize()
 
 	player1 = get_tree().get_first_node_in_group("player1")
 	player2 = get_tree().get_first_node_in_group("player2")
@@ -57,6 +66,13 @@ func _ready():
 
 
 func play_animation(animation_name: String):
+
+	if animation_player == null:
+		return
+
+	if not animation_player.has_animation(animation_name):
+		push_warning("Minion animation not found: " + animation_name)
+		return
 
 	if current_animation != animation_name:
 
@@ -102,8 +118,8 @@ func _physics_process(delta):
 				return
 
 			var fade_progress = (
-				death_timer - death_wait_time
-			) / fade_time
+				(death_timer - death_wait_time) / fade_time
+			)
 
 			fade_progress = clamp(
 				fade_progress,
@@ -114,7 +130,6 @@ func _physics_process(delta):
 			set_fade(fade_progress)
 
 			if fade_progress >= 1.0:
-
 				queue_free()
 
 			return
@@ -200,12 +215,9 @@ func _physics_process(delta):
 	# ============================================================
 
 	if attack_timer > 0:
-
 		attack_timer -= delta
 
-
 	if attack_timer_active > 0:
-
 		attack_timer_active -= delta
 
 
@@ -231,8 +243,7 @@ func _physics_process(delta):
 
 	if is_attacking:
 
-		# If the target died while the skeleton was preparing
-		# its attack, cancel the attack.
+		# Cancel attack if target died
 		if target_player.is_dead:
 
 			is_attacking = false
@@ -245,10 +256,7 @@ func _physics_process(delta):
 			return
 
 
-		var attack_target = (
-			target_player.global_position
-		)
-
+		var attack_target = target_player.global_position
 		attack_target.y = global_position.y
 
 		look_at(
@@ -268,10 +276,8 @@ func _physics_process(delta):
 				target_player.global_position
 			)
 
-
 			if distance <= attack_range:
 
-				# Check one more time before dealing damage.
 				if not target_player.is_dead:
 
 					if target_player.has_method("take_damage"):
@@ -287,12 +293,15 @@ func _physics_process(delta):
 					)
 
 			else:
-
 				print("Skeleton missed!")
-
 
 			is_attacking = false
 			attack_timer = attack_cooldown
+
+			# Return to idle after the attack
+			play_animation(
+				"Rig_Medium_General/Idle_A"
+			)
 
 		return
 
@@ -301,10 +310,7 @@ func _physics_process(delta):
 	# CHASING
 	# ============================================================
 
-	var target_position = (
-		target_player.global_position
-	)
-
+	var target_position = target_player.global_position
 	target_position.y = global_position.y
 
 	var distance = global_position.distance_to(
@@ -319,7 +325,6 @@ func _physics_process(delta):
 		)
 
 		direction.y = 0
-
 		direction = direction.normalized()
 
 		velocity.x = direction.x * speed
@@ -344,11 +349,8 @@ func _physics_process(delta):
 		move_and_slide()
 
 		if attack_timer <= 0:
-
 			attack()
-
 		else:
-
 			play_animation(
 				"Rig_Medium_General/Idle_A"
 			)
@@ -360,16 +362,11 @@ func get_closest_player():
 	var closest_distance = INF
 
 
-	# ============================================================
 	# PLAYER 1
-	# ============================================================
-
 	if player1 != null and not player1.is_dead:
 
-		var distance_to_player1 = (
-			global_position.distance_to(
-				player1.global_position
-			)
+		var distance_to_player1 = global_position.distance_to(
+			player1.global_position
 		)
 
 		if distance_to_player1 < closest_distance:
@@ -378,16 +375,11 @@ func get_closest_player():
 			closest_player = player1
 
 
-	# ============================================================
 	# PLAYER 2
-	# ============================================================
-
 	if player2 != null and not player2.is_dead:
 
-		var distance_to_player2 = (
-			global_position.distance_to(
-				player2.global_position
-			)
+		var distance_to_player2 = global_position.distance_to(
+			player2.global_position
 		)
 
 		if distance_to_player2 < closest_distance:
@@ -401,7 +393,7 @@ func get_closest_player():
 
 func attack():
 
-	# Make sure there is still an alive target.
+	# Make sure there is still an alive target
 	if target_player == null:
 		return
 
@@ -417,10 +409,7 @@ func attack():
 
 	is_attacking = true
 
-	var attack_target = (
-		target_player.global_position
-	)
-
+	var attack_target = target_player.global_position
 	attack_target.y = global_position.y
 
 	look_at(
@@ -430,9 +419,12 @@ func attack():
 
 	attack_timer_active = attack_windup
 
-	play_animation(
-		"Rig_Medium_CombatMelee/Melee_Unarmed_Attack_Punch_A"
-	)
+	# Randomly select a dual-wield attack
+	var chosen_attack = attack_animations[
+		randi() % attack_animations.size()
+	]
+
+	play_animation(chosen_attack)
 
 
 func take_damage(amount):
@@ -496,11 +488,9 @@ func find_meshes(node):
 	for child in node.get_children():
 
 		if child is MeshInstance3D:
-
 			skeleton_meshes.append(child)
 
 		if child.get_child_count() > 0:
-
 			find_meshes(child)
 
 
@@ -516,7 +506,6 @@ func set_fade(amount):
 		if material == null:
 			continue
 
-
 		if not material.resource_local_to_scene:
 
 			material = material.duplicate()
@@ -527,7 +516,6 @@ func set_fade(amount):
 				0,
 				material
 			)
-
 
 		material.transparency = (
 			BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -543,10 +531,8 @@ func _on_fight_area_body_entered(body):
 	if not body.is_in_group("player1") and not body.is_in_group("player2"):
 		return
 
-
 	if fight_started or is_awakening:
 		return
-
 
 	is_awakening = true
 
@@ -554,7 +540,6 @@ func _on_fight_area_body_entered(body):
 	$Skeleton_Minion.visible = true
 
 	print("Skeleton awakening!")
-
 
 	# Randomly choose one awakening animation
 	var awakening_animations = [
@@ -565,10 +550,8 @@ func _on_fight_area_body_entered(body):
 
 	]
 
-
 	var chosen_animation = awakening_animations[
 		randi() % awakening_animations.size()
 	]
-
 
 	play_animation(chosen_animation)
