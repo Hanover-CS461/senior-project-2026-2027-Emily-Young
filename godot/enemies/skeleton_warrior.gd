@@ -16,8 +16,7 @@ signal died(enemy)
 @export var attack_windup: float = 1.3
 @export var attack_range: float = 1.2
 
-# Temporarily disabled while testing projectile collisions.
-@export_range(0.0, 1.0) var shield_damage_reduction: float = 0.0
+@export_range(0.0, 1.0) var shield_damage_reduction: float = 0.65
 @export var flinch_threshold: float = 25.0
 
 @export var death_wait_time: float = 3.0
