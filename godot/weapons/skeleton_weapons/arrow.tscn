@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://cf28wqi7hx16r"]
+
+[ext_resource type="Script" uid="uid://rsd5fqepkjqb" path="res://arrow.gd" id="1_ntfpx"]
+[ext_resource type="PackedScene" uid="uid://c3ud1s8bfpt8g" path="res://weapons/skeleton_weapons/Skeleton_Arrow.gltf" id="2_ndbcs"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_7anak"]
+radius = 0.11230469
+height = 2.5527344
+
+[node name="Arrow" type="Area3D" unique_id=1071361964]
+script = ExtResource("1_ntfpx")
+
+[node name="ArrowModel" parent="." unique_id=924652034 instance=ExtResource("2_ndbcs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0007200949, 0.0002325885, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1999874834]
+transform = Transform3D(-0.24912362, 2.1779078e-08, 0, -2.1779078e-08, -0.24912362, 0, 0, 0, 0.24912362, -0.0013695769, 0.0002325885, 0)
+shape = SubResource("CapsuleShape3D_7anak")
