@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://ce1f1didwoasq"]
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_i2vea"]
-radius = 0.53271484
-height = 2.7177734
+[ext_resource type="Script" uid="uid://cn24yovhe7r1g" path="res://models/dungeon_assets/GLB format/checkpoint.gd" id="1_ltq56"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_d87lq"]
+size = Vector3(1.609436, 2.720459, 2.2525024)
 
 [sub_resource type="CylinderMesh" id="Mesh_base"]
 top_radius = 0.55
@@ -34,22 +35,26 @@ emission = Color(0.1, 0.7, 1, 1)
 emission_energy_multiplier = 0.3
 
 [node name="Checkpoint" type="Area3D" unique_id=946752450]
+script = ExtResource("1_ltq56")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=417308008]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.06188965, 1.033855, -0.0011220574)
-shape = SubResource("CapsuleShape3D_i2vea")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.015666276, 1.246851, 0.030029595)
+shape = SubResource("BoxShape3D_d87lq")
 
 [node name="Base" type="MeshInstance3D" parent="." unique_id=718489856]
+physics_interpolation_mode = 1
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 mesh = SubResource("Mesh_base")
 surface_material_override/0 = SubResource("Mat_stone")
 
 [node name="Pillar" type="MeshInstance3D" parent="." unique_id=1298251311]
+physics_interpolation_mode = 1
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 mesh = SubResource("Mesh_pillar")
 surface_material_override/0 = SubResource("Mat_stone")
 
 [node name="Crystal" type="MeshInstance3D" parent="." unique_id=483735129]
+physics_interpolation_mode = 1
 transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 2, 0)
 mesh = SubResource("Mesh_crystal")
 surface_material_override/0 = SubResource("Mat_crystal")
