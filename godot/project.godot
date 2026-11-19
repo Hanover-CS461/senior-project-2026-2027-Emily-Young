@@ -15,6 +15,10 @@ run/main_scene="res://title_screen/title_screen.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
+[audio]
+
+buses/default_bus_layout="uid://r5mf1gx770i"
+
 [autoload]
 
 ArduinoMage="*uid://dyvllyjep8pyu"

@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://pause_menu/pause_menu.tscn" id="13_ycdy4"]
 [ext_resource type="Script" uid="uid://bkpsm3h7vg8m5" path="res://player_hud.gd" id="14_vivmo"]
 [ext_resource type="PackedScene" uid="uid://j5lk4xmfrr65" path="res://playable_character/Knight/knight.tscn" id="14_w48qg"]
+[ext_resource type="AudioStream" uid="uid://dts5hhcrwq2f0" path="res://Audio/jean-paul-v-au-chateau-de-langeais-307767.mp3" id="15_vivmo"]
 [ext_resource type="PackedScene" uid="uid://chtkimjeg1n31" path="res://Virelune_DelversHollow.glb" id="34_0rl1p"]
 [ext_resource type="PackedScene" uid="uid://bf857op33rnd" path="res://playable_character/barbarian/barbarian.tscn" id="34_4k2k6"]
 [ext_resource type="Script" uid="uid://c4cuv5qekrb6v" path="res://playable_character/barbarian/barbarian.gd" id="35_0rl1p"]
@@ -46,7 +47,6 @@ script = ExtResource("11_dg77c")
 
 [node name="Mage" parent="Player1" unique_id=1450532828 instance=ExtResource("11_efxa6")]
 transform = Transform3D(0.30000004, 0, 0, 0, 0.30000004, 0, 0, 0, 0.30000004, 0, 0, 0)
-script = null
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player1" unique_id=600453214]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0029289837, 0.33496302, 0.027015448)
@@ -141,3 +141,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.7144527, 2.3841858e-07, 1.
 
 [node name="PlayerHUD" type="CanvasLayer" parent="." unique_id=1302776366]
 script = ExtResource("14_vivmo")
+
+[node name="JeanPaulVAuChateauDeLangeais307767" type="AudioStreamPlayer3D" parent="." unique_id=353591497]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.556316, 0.5918002, 5.5489297)
+stream = ExtResource("15_vivmo")
+autoplay = true
+max_distance = 4096.0
