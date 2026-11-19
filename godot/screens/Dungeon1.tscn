@@ -43,6 +43,7 @@
 [ext_resource type="PackedScene" uid="uid://ddq1t3c3ur4dp" path="res://models/dungeon_assets/GLB format/corridor-end.glb" id="41_wnxkk"]
 [ext_resource type="PackedScene" uid="uid://ce1f1didwoasq" path="res://models/dungeon_assets/GLB format/checkpoint.tscn" id="42_gc4uv"]
 [ext_resource type="PackedScene" uid="uid://68yi8gbmdke8" path="res://models/dungeon_assets/GLB format/Virelune_BossRoom_SealedSanctum.glb" id="43_kpwsj"]
+[ext_resource type="AudioStream" uid="uid://cenmwqhkbn744" path="res://Audio/deuslower-dark-fantasy-ambient-dungeon-synthpiano-verse-248214.mp3" id="44_gc4uv"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7dm0k"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -124,6 +125,9 @@ size = Vector3(23.5, 6, 14)
 [sub_resource type="BoxShape3D" id="BoxShape3D_f4chg"]
 size = Vector3(5.2038574, 6, 2.9541016)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_npcey"]
+size = Vector3(3.1073241, 2.668457, 2.579712)
+
 [node name="Main" type="Node3D" unique_id=1941153417]
 script = ExtResource("1_gm3jy")
 
@@ -135,7 +139,7 @@ shadow_enabled = true
 environment = SubResource("Environment_0xm2m")
 
 [node name="Player1" type="CharacterBody3D" parent="." unique_id=1822628822 groups=["player1"]]
-transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 33.44272, -0.7242484, 2.7507029)
+transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 1.2582779, 0.28075027, 2.7507029)
 script = ExtResource("2_88ihb")
 
 [node name="Mage" parent="Player1" unique_id=1450532828 instance=ExtResource("3_mkt6u")]
@@ -365,7 +369,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.216983, 1.5041845, -7.0746
 shape = SubResource("BoxShape3D_n6kla")
 
 [node name="gate-metal-bars3" parent="." unique_id=1152951560 instance=ExtResource("16_h03xv")]
-transform = Transform3D(-2.928663e-08, 0, 0.67, 0, 0.67, 0, -0.67, 0, -2.928663e-08, 4.223473, 2.2404985, 3.1963842)
+transform = Transform3D(-2.928663e-08, 0, 0.67, 0, 0.67, 0, -0.67, 0, -2.928663e-08, 4.223473, 0.024943352, 3.1963842)
 script = ExtResource("19_vvg5t")
 
 [node name="stairs-wide2" parent="." unique_id=1230830797 instance=ExtResource("22_q7r2e")]
@@ -572,7 +576,17 @@ shape = SubResource("BoxShape3D_f4chg")
 transform = Transform3D(0.53960276, 0, 0, 0, 0.53960276, 0, 0, 0, 0.53960276, 28.526728, -1.0584407, -3.1994786)
 
 [node name="Checkpoint" parent="." unique_id=1039333731 instance=ExtResource("42_gc4uv")]
-transform = Transform3D(-0.50545406, 0, -4.4188198e-08, 0, 0.50545406, 0, 4.4188198e-08, 0, -0.50545406, 28.948545, -1.0949869, -3.172068)
+transform = Transform3D(-0.50545406, 0, -4.4188198e-08, 0, 0.50545406, 0, 4.4188198e-08, 0, -0.50545406, 28.78703, -0.96750146, -3.2200503)
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="Checkpoint" unique_id=1520275178]
+transform = Transform3D(1, 0, -1.4210855e-13, 0, 1, 0, 1.4210855e-13, 0, 1, -0.14633799, 1.4280009, 0.12286377)
+shape = SubResource("BoxShape3D_npcey")
 
 [node name="Virelune_BossRoom_SealedSanctum2" parent="." unique_id=112465499 instance=ExtResource("43_kpwsj")]
 transform = Transform3D(-0.023693163, 0, -0.56869656, 0, 0.5691899, 0, 0.56869656, 0, -0.023693163, 44.89379, -1.0625911, -3.4773085)
+
+[node name="DeuslowerDarkFantasyAmbientDungeonSynthpianoVerse248214" type="AudioStreamPlayer3D" parent="." unique_id=275701306]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.452422, 0.5800004, 2.1274755)
+stream = ExtResource("44_gc4uv")
+autoplay = true
+max_distance = 2083.31
