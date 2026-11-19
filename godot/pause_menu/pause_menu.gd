@@ -72,6 +72,7 @@ var _opener: Control = null
 var _toast_tween: Tween = null
 
 var _menu_nav_cooldown: float = 0.0
+var _returning_to_menu: bool = false
 
 @onready var _root: Control = $Root
 @onready var _main_panel: Control = $Root/MainPanel
@@ -126,6 +127,9 @@ func _ready() -> void:
 # =========================================================
 
 func _input(event: InputEvent) -> void:
+	if _returning_to_menu:
+		return
+
 	if not _is_pause_event(event):
 		return
 
@@ -179,12 +183,11 @@ func _is_pause_event(event: InputEvent) -> bool:
 # =========================================================
 
 func _process(delta: float) -> void:
-	if not _root.visible:
+	if not _root.visible or _returning_to_menu:
 		return
 
 	_menu_nav_cooldown = maxf(0.0, _menu_nav_cooldown - delta)
 
-	# Read both players' movement using the existing input manager.
 	var mage_move: Vector2 = PlayerInput.get_move(1)
 	var knight_move: Vector2 = PlayerInput.get_move(2)
 
@@ -195,12 +198,10 @@ func _process(delta: float) -> void:
 	elif mage_move.y > menu_navigation_dead_zone or knight_move.y > menu_navigation_dead_zone:
 		vertical = 1.0
 
-	# Repeat navigation at a controlled interval while the stick is held.
 	if vertical != 0.0 and _menu_nav_cooldown <= 0.0:
 		_move_pause_selection(int(vertical))
 		_menu_nav_cooldown = menu_navigation_delay
 
-	# Horizontal movement adjusts a focused volume slider.
 	var horizontal: float = 0.0
 
 	if mage_move.x < -menu_navigation_dead_zone or knight_move.x < -menu_navigation_dead_zone:
@@ -211,12 +212,10 @@ func _process(delta: float) -> void:
 	if horizontal != 0.0:
 		_adjust_focused_control(horizontal, delta)
 
-	# Right analog stick scrolling remains available for either player.
 	if _controls_panel.visible:
 		_scroll_controls_text(PlayerInput.get_look(1), delta)
 		_scroll_controls_text(PlayerInput.get_look(2), delta)
 
-	# Use each controller's existing interaction-consumption function.
 	var mage_interact: bool = PlayerInput.consume_interaction(1)
 	var knight_interact: bool = PlayerInput.consume_interaction(2)
 
@@ -280,6 +279,7 @@ func _activate_pause_selection() -> void:
 
 		if button.is_visible_in_tree() and not button.disabled:
 			button.pressed.emit()
+
 	elif focused is CheckButton:
 		var check := focused as CheckButton
 
@@ -325,7 +325,7 @@ func _scroll_controls_text(look: Vector2, delta: float) -> void:
 # =========================================================
 
 func open() -> void:
-	if _root.visible:
+	if _root.visible or _returning_to_menu:
 		return
 
 	_prev_mouse_mode = Input.mouse_mode
@@ -346,7 +346,7 @@ func open() -> void:
 
 
 func close() -> void:
-	if not _root.visible:
+	if not _root.visible or _returning_to_menu:
 		return
 
 	_root.visible = false
@@ -398,15 +398,62 @@ func _back_to_main() -> void:
 		_resume.grab_focus()
 
 
+# =========================================================
+# RETURN TO MAIN MENU - FULL SESSION RESET
+# =========================================================
+
 func _return_to_main_menu() -> void:
+	if _returning_to_menu:
+		return
+
 	if not ResourceLoader.exists(main_menu_scene_path):
-		_show_toast("Cannot find %s. Check Main Menu Scene Path." % main_menu_scene_path)
+		_show_toast(
+			"Cannot find %s. Check Main Menu Scene Path."
+			% main_menu_scene_path
+		)
 		_back_to_main()
 		return
 
+	_returning_to_menu = true
+
+	print("PauseMenu: Returning to title screen.")
+	print("PauseMenu: Clearing the current game session.")
+
+	# Get the GameManager.
+	var game_manager: Node = get_node_or_null("/root/GameManager")
+
+	if is_instance_valid(game_manager):
+		# Clear checkpoint, saved positions, and team-wipe state.
+		if game_manager.has_method("clear_game_session"):
+			game_manager.call("clear_game_session")
+		else:
+			push_error(
+				"PauseMenu: GameManager is missing clear_game_session()."
+			)
+			_returning_to_menu = false
+			return
+	else:
+		push_error(
+			"PauseMenu: GameManager Autoload could not be found."
+		)
+		_returning_to_menu = false
+		return
+
+	# Restore mouse and pause state.
 	get_tree().paused = false
 	Input.mouse_mode = _prev_mouse_mode
-	get_tree().change_scene_to_file(main_menu_scene_path)
+
+	# Load the title screen.
+	var error: Error = get_tree().change_scene_to_file(
+		main_menu_scene_path
+	)
+
+	if error != OK:
+		push_error(
+			"PauseMenu: Could not load title screen: "
+			+ main_menu_scene_path
+		)
+		_returning_to_menu = false
 
 
 # =========================================================
