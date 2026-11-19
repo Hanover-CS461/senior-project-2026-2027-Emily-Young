@@ -39,6 +39,10 @@
 [ext_resource type="Script" uid="uid://cf17yj0idf5xb" path="res://upgrade_altar.gd" id="36_yrmp0"]
 [ext_resource type="PackedScene" uid="uid://4yiukdbs8tx3" path="res://models/dungeon_assets/GLB format/pedestal_health.glb" id="37_i2vea"]
 [ext_resource type="PackedScene" uid="uid://dh2ankijlxyiq" path="res://models/dungeon_assets/GLB format/room-small-variation.glb" id="39_yrmp0"]
+[ext_resource type="PackedScene" uid="uid://br0l00hwa87go" path="res://enemies/skeleton_warrior.tscn" id="40_g4c8j"]
+[ext_resource type="PackedScene" uid="uid://ddq1t3c3ur4dp" path="res://models/dungeon_assets/GLB format/corridor-end.glb" id="41_wnxkk"]
+[ext_resource type="PackedScene" uid="uid://ce1f1didwoasq" path="res://models/dungeon_assets/GLB format/checkpoint.tscn" id="42_gc4uv"]
+[ext_resource type="PackedScene" uid="uid://68yi8gbmdke8" path="res://models/dungeon_assets/GLB format/Virelune_BossRoom_SealedSanctum.glb" id="43_kpwsj"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7dm0k"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -118,7 +122,7 @@ size = Vector3(23.5, 6, 14)
 size = Vector3(23.5, 6, 14)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_f4chg"]
-size = Vector3(23.5, 6, 14)
+size = Vector3(5.2038574, 6, 2.9541016)
 
 [node name="Main" type="Node3D" unique_id=1941153417]
 script = ExtResource("1_gm3jy")
@@ -131,7 +135,7 @@ shadow_enabled = true
 environment = SubResource("Environment_0xm2m")
 
 [node name="Player1" type="CharacterBody3D" parent="." unique_id=1822628822 groups=["player1"]]
-transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 18.02695, 1.5353308, 2.7507029)
+transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 33.44272, -0.7242484, 2.7507029)
 script = ExtResource("2_88ihb")
 
 [node name="Mage" parent="Player1" unique_id=1450532828 instance=ExtResource("3_mkt6u")]
@@ -255,6 +259,15 @@ transform = Transform3D(-1.3213413, 0, 1.5013518, 0, 2, 0, -1.5013518, 0, -1.321
 
 [node name="CollisionShape3D3" type="CollisionShape3D" parent="Dungeon1Map/Minion_Den/minion3/FightArea" unique_id=158686500]
 transform = Transform3D(0.6606707, 0, 0.75067574, 0, 1, 0, -0.75067574, 0, 0.6606707, 0.13836145, -0.025000215, -2.0507245)
+shape = SubResource("BoxShape3D_d87lq")
+
+[node name="minion4" parent="Dungeon1Map/Minion_Den" unique_id=2027106597 groups=["gate_minions"] instance=ExtResource("16_dfgm3")]
+transform = Transform3D(-1.3213413, 0, 1.5013518, 0, 2, 0, -1.5013518, 0, -1.3213413, 3.3337781, 0.050019726, -2.5889797)
+
+[node name="FightArea" type="Area3D" parent="Dungeon1Map/Minion_Den/minion4" unique_id=1804560805]
+
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="Dungeon1Map/Minion_Den/minion4/FightArea" unique_id=889929528]
+transform = Transform3D(0.6606707, 0, 0.7506757, 0, 1, 0, -0.7506757, 0, 0.6606707, -0.78881645, -0.025000215, -2.8667355)
 shape = SubResource("BoxShape3D_d87lq")
 
 [node name="corridor-transition2" parent="Dungeon1Map/Minion_Den" unique_id=1823783262 instance=ExtResource("15_dfgm3")]
@@ -534,3 +547,32 @@ script = ExtResource("36_yrmp0")
 
 [node name="room-small-variation2" parent="." unique_id=1043217112 instance=ExtResource("39_yrmp0")]
 transform = Transform3D(0.5382183, 0, 0, 0, 0.5382183, 0, 0, 0, 0.5382183, 32.625366, -1.0431428, -3.2254543)
+
+[node name="Skeleton_Warrior" parent="." unique_id=2059302717 groups=["enemies"] instance=ExtResource("40_g4c8j")]
+transform = Transform3D(0.4160909, 0, 0, 0, 0.4160909, 0, 0, 0, 0.4160909, 33.266655, -1.0162052, -4.563008)
+
+[node name="FightArea" type="Area3D" parent="Skeleton_Warrior" unique_id=1584543796]
+transform = Transform3D(0.9613285, 0, 0, 0, 0.9613285, 0, 0, 0, 0.9613285, 1.1605377, -0.028552294, -1.872818)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Skeleton_Warrior/FightArea" unique_id=955354412]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5793762, 2.7315829, 11.483737)
+shape = SubResource("BoxShape3D_f4chg")
+
+[node name="Skeleton_Warrior2" parent="." unique_id=1462309639 groups=["enemies"] instance=ExtResource("40_g4c8j")]
+transform = Transform3D(-0.31874412, 0, 0.26745808, 0, 0.4160909, 0, -0.26745808, 0, -0.31874412, 30.941807, -1.0162052, -1.8978179)
+
+[node name="FightArea" type="Area3D" parent="Skeleton_Warrior2" unique_id=1528076182]
+transform = Transform3D(-0.7364204, 0, -0.61793005, 0, 0.9613285, 0, 0.61793005, 0, -0.7364204, 0.15188217, -0.028552294, 10.678879)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Skeleton_Warrior2/FightArea" unique_id=380009866]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5793762, 2.7315829, 11.483737)
+shape = SubResource("BoxShape3D_f4chg")
+
+[node name="corridor-end2" parent="." unique_id=947679782 instance=ExtResource("41_wnxkk")]
+transform = Transform3D(0.53960276, 0, 0, 0, 0.53960276, 0, 0, 0, 0.53960276, 28.526728, -1.0584407, -3.1994786)
+
+[node name="Checkpoint" parent="." unique_id=1039333731 instance=ExtResource("42_gc4uv")]
+transform = Transform3D(-0.50545406, 0, -4.4188198e-08, 0, 0.50545406, 0, 4.4188198e-08, 0, -0.50545406, 28.948545, -1.0949869, -3.172068)
+
+[node name="Virelune_BossRoom_SealedSanctum2" parent="." unique_id=112465499 instance=ExtResource("43_kpwsj")]
+transform = Transform3D(-0.023693163, 0, -0.56869656, 0, 0.5691899, 0, 0.56869656, 0, -0.023693163, 44.89379, -1.0625911, -3.4773085)
