@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://cou02w7g1nasr"]
+
+[ext_resource type="Script" uid="uid://s7quwsu18f3j" path="res://models/dungeon_assets/GLB format/game_over_screen.gd" id="1_864yj"]
+
+[node name="GameOverScreen" type="CanvasLayer" unique_id=1425631444]
+process_mode = 3
+layer = 100
+visible = false
+script = ExtResource("1_864yj")

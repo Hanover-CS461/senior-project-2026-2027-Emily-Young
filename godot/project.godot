@@ -24,6 +24,7 @@ buses/default_bus_layout="uid://r5mf1gx770i"
 ArduinoMage="*uid://dyvllyjep8pyu"
 ArduinoKnight="*uid://qkxjyhqs0aqe"
 PlayerInput="*uid://c4k26l1w6eoal"
+GameManager="*uid://bnprxrg2j8v5r"
 
 [display]
 
