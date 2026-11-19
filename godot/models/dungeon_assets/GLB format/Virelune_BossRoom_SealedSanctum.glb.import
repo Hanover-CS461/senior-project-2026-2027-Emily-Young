@@ -1,0 +1,291 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://68yi8gbmdke8"
+path="res://.godot/imported/Virelune_BossRoom_SealedSanctum.glb-396eee671a0f8b80ee74400285eaf907.scn"
+
+[deps]
+
+source_file="res://models/dungeon_assets/GLB format/Virelune_BossRoom_SealedSanctum.glb"
+dest_files=["res://.godot/imported/Virelune_BossRoom_SealedSanctum.glb-396eee671a0f8b80ee74400285eaf907.scn"]
+
+[params]
+
+nodes/root_type=""
+nodes/root_name=""
+nodes/root_script=null
+mesh_library/use_node_names_as_mesh_names=false
+array_mesh/deduplicate_surfaces=true
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+nodes/use_name_suffixes=true
+nodes/use_node_type_suffixes=true
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+materials/extract=0
+materials/extract_format=0
+materials/extract_path=""
+_subresources={
+"nodes": {
+"PATH:Virelune_BossRoom_SealedSanctum/Boss_Dais/Back_Wall_Sigil": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Boss_Dais/Boss_Core": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Boss_Dais/Boss_Core_Altar": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Boss_Dais/Boss_Ring_Inner": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Boss_Dais/Boss_Ring_Middle": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Boss_Dais/Boss_Ring_Outer": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Boss_Dais/Dais_Steps": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Boss_Dais/Sentinel_Statue_L": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Boss_Dais/Sentinel_Statue_R": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Entrance_Gate": {
+"import/skip_import": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Floor_Conduits/Conduit_Core": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Floor_Conduits/Conduit_Fire": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Floor_Conduits/Conduit_Heal": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Floor_Conduits/Conduit_Ice": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Floor_Conduits/Conduit_Seal": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Phase_Pylons/Pylon_Fire": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Phase_Pylons/Pylon_Fire/Pylon_Fire_Crystal": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Phase_Pylons/Pylon_Fire/Pylon_Fire_Rubble": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Phase_Pylons/Pylon_Heal": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Phase_Pylons/Pylon_Heal/Pylon_Heal_Crystal": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Phase_Pylons/Pylon_Heal/Pylon_Heal_Rubble": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Phase_Pylons/Pylon_Ice": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Phase_Pylons/Pylon_Ice/Pylon_Ice_Crystal": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Phase_Pylons/Pylon_Ice/Pylon_Ice_Rubble": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Phase_Pylons/Pylon_Seal": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Phase_Pylons/Pylon_Seal/Pylon_Seal_Crystal": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Phase_Pylons/Pylon_Seal/Pylon_Seal_Rubble": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Braziers/Brazier_1": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Braziers/Brazier_2": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Braziers/Brazier_3": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Braziers/Brazier_4": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Ceiling_Dome/Ceiling_Ribs": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Ceiling_Dome/Ceiling_Shell": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Ceiling_Dome/Chandelier": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Ceiling_Dome/Chandelier/Chandelier_Crystals": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_00": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_01": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_02": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_03": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_04": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_05": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_06": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_07": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_08": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_09": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_10": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_11": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_12": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_13": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_14": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_15": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_16": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_17": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_18": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Columns/Column_19": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Bone_Pile_1": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Bone_Pile_2": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Crystal_Cluster_1": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Crystal_Cluster_2": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Crystal_Cluster_3": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Crystal_Cluster_4": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Rubble_1": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Rubble_10": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Rubble_2": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Rubble_3": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Rubble_4": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Rubble_5": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Rubble_6": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Rubble_7": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Rubble_8": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Details/Rubble_9": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Floor/Floor_Flagstones": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Floor/Floor_Inlay_Rings": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Floor/Floor_Subslab": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Torches/Torch_01": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Walls/Wall_Front_Entrance": {
+"import/skip_import": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Walls/Wall_Reliefs": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Walls/Wall_Ring": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Room_Architecture/Walls/Wall_Trim": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Summoning_Circle/Summoning_Glyphs": {
+"generate/physics": true
+},
+"PATH:Virelune_BossRoom_SealedSanctum/Summoning_Circle/Summoning_Platform": {
+"generate/physics": true
+}
+}
+}
+gltf/naming_version=2
+gltf/embedded_image_handling=1
+gltf/texture_map_mode=1
