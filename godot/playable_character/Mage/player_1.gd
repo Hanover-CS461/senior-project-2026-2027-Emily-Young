@@ -22,10 +22,7 @@ var is_hit: bool = false
 var is_dead: bool = false
 var is_casting_spell: bool = false
 
-# --------------------------------------------------
 # HEALTH
-# --------------------------------------------------
-
 var max_health: int = 100
 var health: int = 100
 
@@ -170,9 +167,7 @@ func _physics_process(delta: float) -> void:
 		):
 			is_hit = false
 
-	# --------------------------------------------------
 	# ARDUINO CAMERA
-	# --------------------------------------------------
 	if is_instance_valid(arduino):
 		var camera_x: float = float(arduino.camera_x)
 		var camera_y: float = float(arduino.camera_y)
@@ -197,9 +192,7 @@ func _physics_process(delta: float) -> void:
 			look_up_down_limit
 		)
 
-	# --------------------------------------------------
 	# MOVEMENT: KEYBOARD + ARDUINO
-	# --------------------------------------------------
 	var direction: Vector3 = Vector3.ZERO
 	var joystick_x: float = 0.0
 	var joystick_y: float = 0.0
@@ -233,9 +226,7 @@ func _physics_process(delta: float) -> void:
 		direction.y = 0.0
 		direction = direction.normalized()
 
-	# --------------------------------------------------
 	# JUMP: KEYBOARD + ARDUINO
-	# --------------------------------------------------
 	var jump_requested: bool = Input.is_action_just_pressed("jump")
 
 	if is_instance_valid(arduino) and arduino.jump_pressed:
@@ -253,17 +244,13 @@ func _physics_process(delta: float) -> void:
 		is_jumping = true
 		play_animation("Rig_Medium_MovementBasic/Jump_Start")
 
-	# --------------------------------------------------
 	# SPRINT: KEYBOARD + ARDUINO
-	# --------------------------------------------------
 	var should_run: bool = Input.is_action_pressed("run")
 
 	if is_instance_valid(arduino) and arduino.sprint_pressed:
 		should_run = true
 
-	# --------------------------------------------------
 	# MOVEMENT SPEED + ANIMATIONS
-	# --------------------------------------------------
 	if direction.length() > 0.0:
 		is_casting_spell = false
 
@@ -302,9 +289,7 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-	# --------------------------------------------------
 	# LANDING
-	# --------------------------------------------------
 	if is_jumping and is_on_floor():
 		is_jumping = false
 		is_landing = true
@@ -345,9 +330,7 @@ func _physics_process(delta: float) -> void:
 			play_animation("Rig_Medium_General/Idle_A")
 
 
-# --------------------------------------------------
 # HEALTH / DAMAGE
-# --------------------------------------------------
 
 func take_damage(amount: int) -> void:
 	if is_dead or amount <= 0:
@@ -379,6 +362,8 @@ func take_damage(amount: int) -> void:
 		current_animation = "Rig_Medium_General/Death_B"
 
 		print("Player 1 defeated! Waiting for revival.")
+
+		_notify_game_manager_of_death()
 		return
 
 	is_hit = true
@@ -386,9 +371,25 @@ func take_damage(amount: int) -> void:
 	play_animation("Rig_Medium_General/Hit_A")
 
 
-# --------------------------------------------------
+# Notify the shared manager so it can check whether both players are dead.
+func _notify_game_manager_of_death() -> void:
+	var game_manager: Node = get_node_or_null("/root/GameManager")
+
+	if game_manager == null:
+		push_warning(
+			"Mage died, but /root/GameManager was not found."
+		)
+		return
+
+	if game_manager.has_method("check_team_wipe"):
+		game_manager.call_deferred("check_team_wipe")
+	else:
+		push_warning(
+			"GameManager does not have check_team_wipe()."
+		)
+
+
 # HEALTH UI REFRESH
-# --------------------------------------------------
 
 func update_health_bar() -> void:
 	# This method allows the upgrade pedestal to notify
@@ -399,14 +400,12 @@ func update_health_bar() -> void:
 	pass
 
 
-# --------------------------------------------------
 # REVIVE
-# --------------------------------------------------
 
 func revive(spawn_position: Vector3) -> void:
-	if not is_dead:
-		return
-
+	# Do not check is_dead here.
+	# A checkpoint scene reload creates new players whose
+	# is_dead value is already false.
 	global_position = spawn_position
 	velocity = Vector3.ZERO
 

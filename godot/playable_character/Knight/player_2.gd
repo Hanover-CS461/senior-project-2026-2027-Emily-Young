@@ -105,9 +105,7 @@ func _ready() -> void:
 		await get_tree().create_timer(0.5, true, false, true).timeout
 
 
-# ==========================================
 # HEALTH UI REFRESH
-# ==========================================
 
 func update_health_bar() -> void:
 	# Placeholder for your health UI.
@@ -116,9 +114,7 @@ func update_health_bar() -> void:
 	pass
 
 
-# ==========================================
 # COMBINED KEYBOARD + ARDUINO INPUT
-# ==========================================
 
 func get_combined_movement() -> Vector2:
 	var keyboard: Vector2 = Input.get_vector(
@@ -195,9 +191,7 @@ func is_dodge_requested() -> bool:
 	return keyboard_dodge or controller_dodge
 
 
-# ==========================================
 # FIND ICE SHRINE
-# ==========================================
 
 func find_ice_shrine() -> void:
 	var root: Node = get_tree().root
@@ -274,9 +268,7 @@ func find_ice_shrine() -> void:
 	print("Knight: Lever interaction ready.")
 
 
-# ==========================================
 # INTERACTION INPUT
-# ==========================================
 
 func interaction_just_pressed() -> bool:
 	var keyboard_pressed: bool = Input.is_action_just_pressed(
@@ -373,9 +365,7 @@ func handle_interaction() -> void:
 	print("Knight: No Ice Shrine interaction at this position.")
 
 
-# ==========================================
 # ICE LEVER
-# ==========================================
 
 func start_lever_pull() -> void:
 	if is_pulling_lever:
@@ -490,9 +480,7 @@ func finish_lever_pull() -> void:
 	play_animation(IDLE_ANIMATION)
 
 
-# ==========================================
 # ANIMATION HELPER
-# ==========================================
 
 func play_animation(animation_name: String) -> void:
 	if is_pulling_lever or is_operating_fire_gear:
@@ -510,9 +498,7 @@ func play_animation(animation_name: String) -> void:
 		current_animation = animation_name
 
 
-# ==========================================
 # STATIONARY MODE
-# ==========================================
 
 func hold_player_in_place(delta: float) -> void:
 	velocity.x = 0.0
@@ -526,9 +512,7 @@ func hold_player_in_place(delta: float) -> void:
 	move_and_slide()
 
 
-# ==========================================
 # MAIN PHYSICS
-# ==========================================
 
 func _physics_process(delta: float) -> void:
 	if get_tree().paused:
@@ -853,9 +837,7 @@ func _physics_process(delta: float) -> void:
 				play_animation(IDLE_ANIMATION)
 
 
-# ==========================================
 # DODGE
-# ==========================================
 
 func start_dodge() -> void:
 	is_dodging = true
@@ -876,9 +858,7 @@ func start_dodge() -> void:
 	print("Knight dodges!")
 
 
-# ==========================================
 # FIRE GEAR MODE
-# ==========================================
 
 func set_near_fire_gear(is_near: bool) -> void:
 	near_fire_gear = is_near
@@ -938,9 +918,7 @@ func stop_fire_gear_mode() -> void:
 	print("Knight: Fire Gear mode ended. Movement restored.")
 
 
-# ==========================================
 # COMBAT
-# ==========================================
 
 func attack() -> void:
 	is_attacking = true
@@ -1015,6 +993,8 @@ func take_damage(amount: int) -> void:
 			push_warning("Knight: Death animation not found.")
 
 		print("Player 2 defeated! Waiting for revival.")
+
+		_notify_game_manager_of_death()
 		return
 
 	if animation_player.has_animation(HIT_ANIMATION):
@@ -1029,14 +1009,30 @@ func take_damage(amount: int) -> void:
 		)
 
 
-# ==========================================
-# REVIVE
-# ==========================================
+# Notify the shared manager so it can check whether both players are dead.
+func _notify_game_manager_of_death() -> void:
+	var game_manager: Node = get_node_or_null("/root/GameManager")
 
-func revive(spawn_position: Vector3) -> void:
-	if not is_dead:
+	if game_manager == null:
+		push_warning(
+			"Knight died, but /root/GameManager was not found."
+		)
 		return
 
+	if game_manager.has_method("check_team_wipe"):
+		game_manager.call_deferred("check_team_wipe")
+	else:
+		push_warning(
+			"GameManager does not have check_team_wipe()."
+		)
+
+
+# REVIVE
+
+func revive(spawn_position: Vector3) -> void:
+	# Do not check is_dead here.
+	# A checkpoint scene reload creates new players whose
+	# is_dead value is already false.
 	global_position = spawn_position
 	velocity = Vector3.ZERO
 
