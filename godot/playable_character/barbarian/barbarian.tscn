@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bf857op33rnd"]
 
 [ext_resource type="PackedScene" uid="uid://bnx03j1xb7wnq" path="res://playable_character/barbarian/Barbarian.glb" id="1_ofhl6"]
+[ext_resource type="PackedScene" uid="uid://c1536knvkc4rs" path="res://weapons/mug_full.gltf" id="2_htfbh"]
 [ext_resource type="AnimationLibrary" uid="uid://chostbxdhkseh" path="res://animation/Rig_Medium_CombatMelee.glb" id="2_ip86l"]
 [ext_resource type="AnimationLibrary" uid="uid://4663ayf05aa" path="res://animation/Rig_Medium_CombatRanged.glb" id="3_htfbh"]
 [ext_resource type="AnimationLibrary" uid="uid://sca16nnncgl1" path="res://animation/Rig_Medium_General.glb" id="4_t54tr"]
@@ -27,7 +28,7 @@ bones/9/rotation = Quaternion(4.7019774e-38, 1.9252013e-17, 1.110223e-16, 1)
 bones/10/position = Vector3(-0.21200737, 0.13413239, 5.4271297e-08)
 bones/10/rotation = Quaternion(-0.47954884, 0.13168815, 0.7511595, 0.43410912)
 bones/11/rotation = Quaternion(-9.529651e-09, 5.763673e-08, 0.59526765, 0.8035276)
-bones/13/rotation = Quaternion(-0.042427633, -0.03865473, 0.12362374, 0.990668)
+bones/13/rotation = Quaternion(-0.04242763, -0.038654726, 0.12362373, 0.9906679)
 bones/14/position = Vector3(-3.5904108e-08, 0.096125126, -0.057500005)
 bones/14/rotation = Quaternion(0.09633249, 0.1939586, 0.52306706, 0.8243185)
 bones/15/position = Vector3(0.14728989, 0.08435925, 0.022773515)
@@ -40,6 +41,14 @@ bones/19/rotation = Quaternion(0.7634224, -0.0379927, 0.07594449, 0.6402931)
 bones/20/rotation = Quaternion(0.5924863, -6.5456746e-08, 4.1728558e-07, 0.8055805)
 bones/21/rotation = Quaternion(-0.6253611, -0.02726838, 0.0106323995, 0.77978647)
 bones/22/rotation = Quaternion(-5.047784e-06, 0.9201402, -0.3915891, 1.1938879e-06)
+
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="Rig_Medium/Skeleton3D" index="7" unique_id=293908907]
+transform = Transform3D(-0.06901672, 0.5496551, -0.8325352, -0.89023423, 0.34270382, 0.3000592, 0.45024186, 0.76186115, 0.46566972, -0.3820416, 0.71482295, -0.2261997)
+bone_name = "handslot.r"
+bone_idx = 14
+
+[node name="mug_full2" parent="Rig_Medium/Skeleton3D/BoneAttachment3D" index="0" unique_id=976712239 instance=ExtResource("2_htfbh")]
+transform = Transform3D(-0.27682897, -0.95105475, 0.13733411, -0.62030536, 0.28601986, 0.73035175, -0.7338849, 0.11699332, -0.6691231, 0.1557678, 0.26357672, 0.16110516)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." index="1" unique_id=493458927]
 libraries/Rig_Medium_CombatMelee = ExtResource("2_ip86l")
