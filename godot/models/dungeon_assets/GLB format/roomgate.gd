@@ -1,4 +1,3 @@
-
 extends Node3D
 
 @export var open_height: float = 3.0
