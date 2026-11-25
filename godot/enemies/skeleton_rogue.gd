@@ -4,6 +4,10 @@ extends CharacterBody3D
 signal health_changed(current, maximum)
 signal died(enemy)
 
+# ============================================================
+# STATS
+# ============================================================
+
 @export var health: float = 100.0
 @export var speed: float = 1.2
 @export var stop_distance: float = 0.05
@@ -24,6 +28,10 @@ signal died(enemy)
 @export var flinch_threshold: float = 1.0
 @export var death_wait_time: float = 3.0
 @export var fade_time: float = 2.0
+
+# Only applied when summoned by the Mage.
+@export var spawn_visual_scale: float = 0.4
+var spawn_scale_applied: bool = false
 
 @export_group("Movement")
 @export var gravity_multiplier: float = 1.0
@@ -79,6 +87,10 @@ var shoot_animation: String = "Rig_Medium_CombatRanged/Ranged_2H_Shoot"
 var reload_animation: String = "Rig_Medium_CombatRanged/Ranged_2H_Reload"
 
 
+# ============================================================
+# READY
+# ============================================================
+
 func _ready() -> void:
 	randomize()
 	current_health = health
@@ -118,24 +130,50 @@ func _ready() -> void:
 
 	find_visual_meshes(visual_model)
 
-	var search_node: Node = self
-
-	while search_node != null:
-		fight_area = search_node.get_node_or_null("FightArea") as Area3D
-		if fight_area != null:
-			break
-		search_node = search_node.get_parent()
+	# Search only inside this Rogue's own model hierarchy.
+	# Do not accidentally connect to another room's FightArea.
+	fight_area = model.find_child("FightArea", true, false) as Area3D
 
 	if fight_area != null:
-		fight_area.body_entered.connect(_on_fight_area_body_entered)
+		if not fight_area.body_entered.is_connected(_on_fight_area_body_entered):
+			fight_area.body_entered.connect(_on_fight_area_body_entered)
 	else:
-		push_warning("Skeleton Rogue: FightArea was not found.")
+		print("Skeleton Rogue: No local FightArea. Waiting for direct activation.")
 
 	velocity = Vector3.ZERO
 	health_changed.emit(current_health, health)
 
-	print("Skeleton Rogue diagnostic version ready.")
+	print("Skeleton Rogue initialized.")
 
+
+# ============================================================
+# MAGE SPAWN VISUAL SCALING
+# ============================================================
+
+func apply_spawn_scale() -> void:
+	if spawn_scale_applied:
+		return
+
+	if not is_instance_valid(visual_model):
+		return
+
+	# Preserve the physics body's world transform.
+	var body_world_transform: Transform3D = global_transform
+
+	# Scale only the visual model.
+	visual_model.scale *= spawn_visual_scale
+
+	# Restore the physics body's world transform.
+	global_transform = body_world_transform
+
+	spawn_scale_applied = true
+
+	print("Skeleton Rogue Mage spawn scale applied: ", spawn_visual_scale)
+
+
+# ============================================================
+# LOADED ARROW POSITIONING
+# ============================================================
 
 func _process(_delta: float) -> void:
 	if not is_instance_valid(loaded_arrow):
@@ -152,51 +190,86 @@ func _process(_delta: float) -> void:
 		loaded_arrow_model.rotation = ARROW_MODEL_CORRECTION
 
 
+# ============================================================
+# PHYSICS / MAIN LOOP
+# ============================================================
+
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
 	apply_gravity(delta)
 
-	# DIAGNOSTIC: Disable all horizontal movement.
-	# This tests whether the rogue is being moved by another transform or script.
-	velocity.x = 0.0
-	velocity.z = 0.0
-
 	if not is_awake:
+		velocity.x = 0.0
+		velocity.z = 0.0
 		play_animation(idle_animation)
-	elif is_waking:
-		pass
-	elif is_flinching:
-		pass
-	elif is_attacking or not can_attack:
-		if not is_attacking:
-			find_nearest_player()
-			if is_instance_valid(target_player):
-				face_player()
-			play_animation(aiming_animation)
+
+	elif is_waking or is_flinching:
+		velocity.x = 0.0
+		velocity.z = 0.0
+
+	elif is_attacking:
+		velocity.x = 0.0
+		velocity.z = 0.0
+
 	else:
 		find_nearest_player()
 
 		if is_instance_valid(target_player):
 			face_player()
-			var distance := global_position.distance_to(
-				target_player.global_position
-			)
 
-			if distance <= attack_range and distance >= stop_distance:
-				start_attack()
+			if can_attack:
+				var target_position := target_player.global_position
+				target_position.y = global_position.y
+
+				var distance := global_position.distance_to(target_position)
+				var direction := global_position.direction_to(target_position)
+				direction.y = 0.0
+				direction = direction.normalized()
+
+				if distance < RETREAT_STOP_DISTANCE:
+					movement_state = MovementState.RETREAT
+
+					velocity.x = -direction.x * speed
+					velocity.z = -direction.z * speed
+
+					play_animation(walk_animation)
+
+				elif distance > APPROACH_STOP_DISTANCE:
+					movement_state = MovementState.APPROACH
+
+					velocity.x = direction.x * speed * approach_speed_multiplier
+					velocity.z = direction.z * speed * approach_speed_multiplier
+
+					play_animation(walk_animation)
+
+				else:
+					movement_state = MovementState.HOLD
+
+					velocity.x = 0.0
+					velocity.z = 0.0
+
+					if distance <= attack_range:
+						start_attack()
+					else:
+						play_animation(aiming_animation)
 			else:
+				velocity.x = 0.0
+				velocity.z = 0.0
 				play_animation(aiming_animation)
-		else:
-			play_animation(idle_animation)
 
-	# Always keep horizontal velocity zero during this diagnostic.
-	velocity.x = 0.0
-	velocity.z = 0.0
+		else:
+			velocity.x = 0.0
+			velocity.z = 0.0
+			play_animation(idle_animation)
 
 	move_body_and_sync()
 
+
+# ============================================================
+# GRAVITY
+# ============================================================
 
 func apply_gravity(delta: float) -> void:
 	var gravity: float = float(
@@ -210,6 +283,10 @@ func apply_gravity(delta: float) -> void:
 		velocity.y -= gravity * gravity_multiplier * delta
 
 
+# ============================================================
+# BODY / MODEL SYNCHRONIZATION
+# ============================================================
+
 func move_body_and_sync() -> void:
 	if is_dead:
 		return
@@ -217,7 +294,6 @@ func move_body_and_sync() -> void:
 	move_and_slide()
 
 	# Keep the body and parent in their original relationship.
-	# No rotation synchronization.
 	if model != null:
 		var body_offset: Vector3 = (
 			model.global_transform.basis * original_body_transform.origin
@@ -226,8 +302,15 @@ func move_body_and_sync() -> void:
 		transform = original_body_transform
 
 
+# ============================================================
+# FACING
+# ============================================================
+
 func face_player() -> void:
 	if not is_instance_valid(target_player):
+		return
+
+	if not is_instance_valid(visual_model):
 		return
 
 	var look_position: Vector3 = target_player.global_position
@@ -240,6 +323,10 @@ func face_player() -> void:
 	visual_model.rotate_y(MODEL_Y_ROTATION_OFFSET)
 
 
+# ============================================================
+# PLAYER TARGETING
+# ============================================================
+
 func find_nearest_player() -> void:
 	var players: Array[Node] = get_tree().get_nodes_in_group("player1")
 	players.append_array(get_tree().get_nodes_in_group("player2"))
@@ -250,8 +337,10 @@ func find_nearest_player() -> void:
 	for player in players:
 		if not is_instance_valid(player):
 			continue
+
 		if not player is Node3D:
 			continue
+
 		if player.get("is_dead") == true:
 			continue
 
@@ -264,6 +353,10 @@ func find_nearest_player() -> void:
 			nearest_distance = distance
 			target_player = player_node
 
+
+# ============================================================
+# LOADED ARROW
+# ============================================================
 
 func create_loaded_arrow() -> void:
 	if is_instance_valid(loaded_arrow):
@@ -278,12 +371,14 @@ func create_loaded_arrow() -> void:
 	if loaded_arrow == null:
 		if is_instance_valid(new_arrow):
 			new_arrow.queue_free()
+
 		push_error("Skeleton Rogue: Arrow scene root must be an Area3D.")
 		return
 
 	loaded_arrow.top_level = true
 
 	var scene_root: Node = get_tree().current_scene
+
 	if scene_root == null:
 		loaded_arrow.queue_free()
 		loaded_arrow = null
@@ -317,6 +412,10 @@ func remove_loaded_arrow() -> void:
 	loaded_arrow = null
 	loaded_arrow_model = null
 
+
+# ============================================================
+# ATTACKING
+# ============================================================
 
 func start_attack() -> void:
 	if not can_attack or is_attacking or is_dead:
@@ -353,6 +452,7 @@ func start_attack() -> void:
 	face_player()
 
 	var shots_to_fire: int = 1
+
 	if randf() < burst_chance:
 		shots_to_fire = burst_shots
 		print("Skeleton Rogue is firing a rapid burst!")
@@ -363,6 +463,7 @@ func start_attack() -> void:
 			return
 
 		find_nearest_player()
+
 		if not is_instance_valid(target_player):
 			break
 
@@ -383,6 +484,7 @@ func start_attack() -> void:
 		var reload_duration: float = animation_player.get_animation(
 			reload_animation
 		).length
+
 		play_animation(reload_animation)
 		await get_tree().create_timer(reload_duration).timeout
 
@@ -397,6 +499,7 @@ func start_attack() -> void:
 func shoot_arrow() -> void:
 	if arrow_scene == null or not is_instance_valid(arrow_spawn):
 		return
+
 	if not is_instance_valid(target_player):
 		return
 
@@ -409,6 +512,7 @@ func shoot_arrow() -> void:
 		return
 
 	var scene_root: Node = get_tree().current_scene
+
 	if scene_root == null:
 		arrow.queue_free()
 		return
@@ -427,36 +531,38 @@ func shoot_arrow() -> void:
 
 func finish_attack() -> void:
 	is_attacking = false
+
 	if is_dead:
 		return
 
 	play_animation(idle_animation)
+
 	await get_tree().create_timer(attack_cooldown).timeout
 
 	if not is_dead:
 		can_attack = true
 
 
-func _on_fight_area_body_entered(body: Node3D) -> void:
-	if is_dead:
-		return
+# ============================================================
+# ACTIVATION / WAKING
+# ============================================================
 
-	if body.is_in_group("player1") or body.is_in_group("player2"):
-		wake_up()
-
-
+# Natural FightArea activation calls wake_up() directly.
+# It does not apply the Mage spawn scale.
 func wake_up() -> void:
 	if is_awake or is_dead:
 		return
 
 	is_awake = true
 	is_waking = true
+
 	model.visible = true
 
 	if animation_player.has_animation(spawn_animation):
 		var spawn_duration: float = animation_player.get_animation(
 			spawn_animation
 		).length
+
 		play_animation(spawn_animation)
 		await get_tree().create_timer(spawn_duration).timeout
 	else:
@@ -468,6 +574,27 @@ func wake_up() -> void:
 	is_waking = false
 	create_loaded_arrow()
 
+
+# Called by the Mage when this Rogue is summoned.
+func activate() -> void:
+	if is_awake or is_waking or is_dead:
+		return
+
+	apply_spawn_scale()
+	wake_up()
+
+
+func _on_fight_area_body_entered(body: Node3D) -> void:
+	if is_dead:
+		return
+
+	if body.is_in_group("player1") or body.is_in_group("player2"):
+		wake_up()
+
+
+# ============================================================
+# DAMAGE
+# ============================================================
 
 func take_damage(amount: float) -> void:
 	if is_dead or amount <= 0.0:
@@ -494,6 +621,7 @@ func flinch() -> void:
 	is_flinching = true
 	is_attacking = false
 	can_attack = false
+
 	velocity.x = 0.0
 	velocity.z = 0.0
 
@@ -503,6 +631,7 @@ func flinch() -> void:
 		var hit_duration: float = animation_player.get_animation(
 			hit_animation
 		).length
+
 		play_animation(hit_animation)
 		await get_tree().create_timer(hit_duration).timeout
 
@@ -513,6 +642,10 @@ func flinch() -> void:
 	can_attack = true
 	create_loaded_arrow()
 
+
+# ============================================================
+# DEATH
+# ============================================================
 
 func die() -> void:
 	if is_dead:
@@ -532,8 +665,8 @@ func die() -> void:
 		get_tree().get_nodes_in_group("rogue_room").size()
 	)
 
-	if fight_area != null:
-		fight_area.monitoring = false
+	if is_instance_valid(fight_area):
+		fight_area.set_deferred("monitoring", false)
 
 	died.emit(self)
 
@@ -541,12 +674,17 @@ func die() -> void:
 		var death_duration: float = animation_player.get_animation(
 			death_animation
 		).length
+
 		play_animation(death_animation)
 		await get_tree().create_timer(death_duration).timeout
 
 	if is_instance_valid(self):
 		await fade_out()
 
+
+# ============================================================
+# MESH COLLECTION
+# ============================================================
 
 func find_visual_meshes(node: Node) -> void:
 	for child in node.get_children():
@@ -556,6 +694,10 @@ func find_visual_meshes(node: Node) -> void:
 		if child.get_child_count() > 0:
 			find_visual_meshes(child)
 
+
+# ============================================================
+# FADE OUT
+# ============================================================
 
 func fade_out() -> void:
 	if visual_meshes.is_empty():
@@ -568,10 +710,12 @@ func fade_out() -> void:
 
 		for surface_index in range(mesh.mesh.get_surface_count()):
 			var original_material := mesh.get_active_material(surface_index)
+
 			if original_material == null:
 				continue
 
 			var material_copy := original_material.duplicate() as Material
+
 			mesh.set_surface_override_material(
 				surface_index,
 				material_copy
@@ -593,6 +737,7 @@ func fade_out() -> void:
 			if material is BaseMaterial3D:
 				var final_color: Color = material.albedo_color
 				final_color.a = 0.0
+
 				tween.tween_property(
 					material,
 					"albedo_color",
@@ -603,6 +748,10 @@ func fade_out() -> void:
 	await tween.finished
 	queue_free()
 
+
+# ============================================================
+# ANIMATION
+# ============================================================
 
 func play_animation(animation_name: String) -> void:
 	if animation_player == null:

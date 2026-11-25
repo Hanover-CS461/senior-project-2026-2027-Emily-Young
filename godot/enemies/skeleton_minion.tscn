@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://sqf8fxm1m1mf"]
 
 [ext_resource type="PackedScene" uid="uid://bq13nlkjryujx" path="res://enemies/Skeleton_Minion.glb" id="1_gd5vt"]
+[ext_resource type="Script" uid="uid://bov506inm6oe" path="res://enemies/skeleton_minion.gd" id="2_05pww"]
 [ext_resource type="PackedScene" uid="uid://bay5smduhp72p" path="res://weapons/skeleton_weapons/Skeleton_Blade.gltf" id="2_2745l"]
 [ext_resource type="AnimationLibrary" uid="uid://chostbxdhkseh" path="res://animation/Rig_Medium_CombatMelee.glb" id="2_ah7p6"]
 [ext_resource type="AnimationLibrary" uid="uid://sca16nnncgl1" path="res://animation/Rig_Medium_General.glb" id="2_qjdub"]
@@ -8,6 +9,9 @@
 [ext_resource type="AnimationLibrary" uid="uid://b7fjg6davp4q3" path="res://animation/Rig_Medium_Simulation.glb" id="5_2745l"]
 [ext_resource type="AnimationLibrary" uid="uid://dkof4rhf6ejii" path="res://animation/Rig_Medium_Special.glb" id="6_05pww"]
 [ext_resource type="AnimationLibrary" uid="uid://c5fwv2fr32f5" path="res://animation/Rig_Medium_Tools.glb" id="7_4tpq3"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_7anak"]
+height = 2.3032227
 
 [node name="Skeleton_Minion" unique_id=1500754834 instance=ExtResource("1_gd5vt")]
 
@@ -56,7 +60,15 @@ bone_idx = 22
 
 [node name="Skeleton_Blade2" parent="Rig_Medium/Skeleton3D/BoneAttachment3D2" index="0" unique_id=711551399 instance=ExtResource("2_2745l")]
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="." index="1" unique_id=956258682]
+[node name="CharacterBody3D" type="CharacterBody3D" parent="." index="1" unique_id=1077278461]
+script = ExtResource("2_05pww")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D" index="0" unique_id=329249834]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0364555, 0)
+shape = SubResource("CapsuleShape3D_7anak")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="CharacterBody3D" index="1" unique_id=956258682]
+root_node = NodePath("../..")
 libraries/Rig_Medium_CombatMelee = ExtResource("2_ah7p6")
 libraries/Rig_Medium_General = ExtResource("2_qjdub")
 libraries/Rig_Medium_MovementBasic = ExtResource("3_77a08")

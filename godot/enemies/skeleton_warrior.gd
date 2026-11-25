@@ -22,6 +22,12 @@ signal died(enemy)
 @export var death_wait_time: float = 3.0
 @export var fade_time: float = 2.0
 
+# Only applied when summoned by the Skeleton Mage.
+@export var spawn_visual_scale: float = 0.4
+
+var spawn_scale_applied: bool = false
+
+
 # ==================================================
 # ANIMATIONS
 # ==================================================
@@ -45,6 +51,7 @@ var anim_attack_options: Array[String] = [
 	"Rig_Medium_CombatMelee/Melee_2H_Attack_Spin"
 ]
 
+
 # ==================================================
 # REFERENCES
 # ==================================================
@@ -52,6 +59,7 @@ var anim_attack_options: Array[String] = [
 var visual_model: Node3D
 var animation_player: AnimationPlayer
 var fight_area: Area3D
+
 
 # ==================================================
 # STATE
@@ -88,9 +96,11 @@ var current_target: Node3D
 func _ready() -> void:
 	max_health = health
 
-	# Register the actual CharacterBody3D as an enemy.
 	if not is_in_group("enemies"):
 		add_to_group("enemies")
+
+	if not is_in_group("skeleton_warriors"):
+		add_to_group("skeleton_warriors")
 
 	var rig := get_parent()
 
@@ -101,8 +111,14 @@ func _ready() -> void:
 	var scene_root := rig.get_parent()
 
 	visual_model = scene_root as Node3D
-	animation_player = scene_root.get_node_or_null("AnimationPlayer") as AnimationPlayer
-	fight_area = scene_root.get_node_or_null("FightArea") as Area3D
+
+	animation_player = scene_root.find_child(
+		"AnimationPlayer", true, false
+	) as AnimationPlayer
+
+	fight_area = scene_root.find_child(
+		"FightArea", true, false
+	) as Area3D
 
 	if visual_model == null:
 		push_error("Skeleton Bruiser: Could not find Skeleton_Warrior.")
@@ -112,12 +128,11 @@ func _ready() -> void:
 		push_error("Skeleton Bruiser: Could not find AnimationPlayer.")
 		return
 
-	if fight_area == null:
-		push_error("Skeleton Bruiser: Could not find FightArea.")
-		return
-
-	if not fight_area.body_entered.is_connected(_on_fight_area_body_entered):
-		fight_area.body_entered.connect(_on_fight_area_body_entered)
+	if fight_area != null:
+		if not fight_area.body_entered.is_connected(_on_fight_area_body_entered):
+			fight_area.body_entered.connect(_on_fight_area_body_entered)
+	else:
+		print("Skeleton Bruiser: No local FightArea. Waiting for direct activation.")
 
 	visual_model.visible = false
 
@@ -129,6 +144,32 @@ func _ready() -> void:
 
 	print("Skeleton Bruiser initialized. Waiting for player.")
 	print("Skeleton Bruiser registered in enemies group.")
+	print("Skeleton Bruiser registered in skeleton_warriors group.")
+
+
+# ==================================================
+# SPAWN VISUAL SCALING
+# ==================================================
+
+func apply_spawn_scale() -> void:
+	if spawn_scale_applied:
+		return
+
+	if not is_instance_valid(visual_model):
+		return
+
+	# Preserve the physics body's world transform.
+	var original_body_transform: Transform3D = global_transform
+
+	# Scale only the visual hierarchy.
+	visual_model.scale *= spawn_visual_scale
+
+	# Restore the physics body's world transform.
+	global_transform = original_body_transform
+
+	spawn_scale_applied = true
+
+	print("Skeleton Bruiser spawn scale applied: ", spawn_visual_scale)
 
 
 # ==================================================
@@ -197,6 +238,17 @@ func start_wake_up() -> void:
 	raise_shield()
 
 	print("Skeleton Bruiser: Combat activated.")
+
+
+# Called by the Mage when this Warrior is summoned.
+func activate() -> void:
+	apply_spawn_scale()
+	start_wake_up()
+
+
+func wake_up() -> void:
+	apply_spawn_scale()
+	start_wake_up()
 
 
 # ==================================================
@@ -289,7 +341,10 @@ func get_closest_player() -> Node3D:
 			continue
 
 		var player_node := player as Node3D
-		var distance := get_flat_distance(global_position, player_node.global_position)
+		var distance := get_flat_distance(
+			global_position,
+			player_node.global_position
+		)
 
 		if distance < closest_distance:
 			closest_distance = distance
@@ -317,7 +372,10 @@ func process_combat_movement() -> void:
 		raise_shield()
 		return
 
-	var distance := get_flat_distance(global_position, current_target.global_position)
+	var distance := get_flat_distance(
+		global_position,
+		current_target.global_position
+	)
 
 	face_player(current_target)
 
@@ -356,7 +414,6 @@ func face_player(player: Node3D) -> void:
 			Vector3.UP
 		)
 
-		# Fixed imported-model orientation correction.
 		visual_model.rotate_y(PI)
 
 
@@ -522,18 +579,6 @@ func flinch() -> void:
 
 
 # ==================================================
-# ACTIVATION COMPATIBILITY
-# ==================================================
-
-func activate() -> void:
-	start_wake_up()
-
-
-func wake_up() -> void:
-	start_wake_up()
-
-
-# ==================================================
 # ANIMATION HELPERS
 # ==================================================
 
@@ -622,7 +667,11 @@ func fade_out() -> void:
 			if new_material == null:
 				continue
 
-			mesh_instance.set_surface_override_material(surface_index, new_material)
+			mesh_instance.set_surface_override_material(
+				surface_index,
+				new_material
+			)
+
 			new_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 
 			var tween := create_tween()
